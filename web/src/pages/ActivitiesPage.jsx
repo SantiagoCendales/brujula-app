@@ -33,6 +33,8 @@ export default function ActivitiesPage({
   if (status) query.set('status', status);
   const { data, error, loading, reload } = useApi(`/activities?${query}`);
   useActivityChanges(reload);
+  const counts = useApi(showFilter ? '/activities/counts' : null);
+  useActivityChanges(counts.reload);
 
   return (
     <section className="flex flex-col gap-4">
@@ -45,7 +47,7 @@ export default function ActivitiesPage({
         )}
       </div>
 
-      {showFilter && <StatusFilter value={status} onChange={setStatus} />}
+      {showFilter && <StatusFilter value={status} onChange={setStatus} counts={counts.data} />}
 
       <ErrorMessage>{error?.message}</ErrorMessage>
       {loading && !data && (
