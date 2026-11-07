@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 const DEMO_USERS = [
+  { label: 'Admin', email: 'admin@brujula.test' },
   { label: 'Coordinador', email: 'coordinador@brujula.test' },
   { label: 'Técnico', email: 'tecnico1@brujula.test' },
   { label: 'CEC', email: 'cec@brujula.test' },
