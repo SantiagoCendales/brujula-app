@@ -11,7 +11,7 @@ import NewActivityPage from './pages/NewActivityPage.jsx';
 
 function RootRedirect() {
   const { user, checking } = useAuth();
-  if (checking) return <p className="p-6 text-center text-slate-500">Cargando…</p>;
+  if (checking) return <p className="p-6 text-center text-muted-foreground">Cargando…</p>;
   return <Navigate to={user ? homePathFor(user.role) : '/login'} replace />;
 }
 

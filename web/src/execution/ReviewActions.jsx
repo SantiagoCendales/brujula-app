@@ -1,17 +1,23 @@
+import { CircleCheck, PackageCheck } from 'lucide-react';
 import { useState } from 'react';
-import { request } from '../lib/api.js';
+import ErrorMessage from '@/components/ErrorMessage';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { request } from '@/lib/api';
 
 const ACTIONS = {
   validate: {
     roles: ['cec', 'admin'],
     status: 'report_ready',
     label: 'Validar informe',
+    Icon: CircleCheck,
     hint: 'Revisa el informe y las fotos. Al validar queda registrado quién y cuándo.',
   },
   deliver: {
     roles: ['coordinator', 'admin'],
     status: 'validated',
     label: 'Marcar como entregada al cliente',
+    Icon: PackageCheck,
     hint: 'El informe ya fue validado por el CEC.',
   },
 };
@@ -38,17 +44,15 @@ export default function ReviewActions({ activity, role, onChange }) {
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-2xl bg-white p-4 shadow-sm">
-      <p className="text-sm text-slate-600">{config.hint}</p>
-      <button
-        type="button"
-        onClick={handleClick}
-        disabled={busy}
-        className="w-full rounded-xl bg-brand py-4 text-lg font-semibold text-white disabled:opacity-60"
-      >
-        {busy ? 'Guardando…' : config.label}
-      </button>
-      {error && <p className="text-sm text-red-700">{error}</p>}
-    </div>
+    <Card>
+      <CardContent className="flex flex-col gap-3">
+        <p className="text-muted-foreground">{config.hint}</p>
+        <Button size="touch" onClick={handleClick} disabled={busy}>
+          <config.Icon />
+          {busy ? 'Guardando…' : config.label}
+        </Button>
+        <ErrorMessage>{error}</ErrorMessage>
+      </CardContent>
+    </Card>
   );
 }

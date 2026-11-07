@@ -1,10 +1,14 @@
+import { Camera, CircleCheck, Circle, LoaderCircle, MapPin, Plus, X } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { apiUrl, request } from '../lib/api.js';
-import { compressImage, getLocation } from '../lib/device.js';
-import { PHOTO_CATEGORY_LABELS } from '../lib/labels.js';
-import { MAX_REPORT_LENGTH, REQUIRED_PHOTOS } from '../lib/rules.js';
-
-const primaryButton = 'w-full rounded-xl bg-brand py-4 text-lg font-semibold text-white disabled:opacity-60';
+import ErrorMessage from '@/components/ErrorMessage';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { apiUrl, request } from '@/lib/api';
+import { compressImage, getLocation } from '@/lib/device';
+import { PHOTO_CATEGORY_LABELS } from '@/lib/labels';
+import { MAX_REPORT_LENGTH, REQUIRED_PHOTOS } from '@/lib/rules';
 
 function ArriveStep({ activity, onChange }) {
   const [busy, setBusy] = useState(false);
@@ -25,13 +29,16 @@ function ArriveStep({ activity, onChange }) {
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-2xl bg-white p-4 shadow-sm">
-      <p className="text-sm text-slate-600">Cuando estés en el sitio, marca tu llegada. Se guarda la hora y tu ubicación.</p>
-      <button type="button" onClick={handleArrive} disabled={busy} className={primaryButton}>
-        {busy ? 'Obteniendo ubicación…' : '📍 Llegué'}
-      </button>
-      {error && <p className="text-sm text-red-700">{error}</p>}
-    </div>
+    <Card>
+      <CardContent className="flex flex-col gap-3">
+        <p className="text-muted-foreground">Cuando estés en el sitio, marca tu llegada. Se guarda la hora y tu ubicación.</p>
+        <Button size="touch" onClick={handleArrive} disabled={busy}>
+          {busy ? <LoaderCircle className="animate-spin" /> : <MapPin />}
+          {busy ? 'Obteniendo ubicación…' : 'Llegué'}
+        </Button>
+        <ErrorMessage>{error}</ErrorMessage>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -79,57 +86,60 @@ function PhotosStep({ activity, onChange }) {
     }
   }
 
-  const categories = [...REQUIRED_PHOTOS, 'other'];
-
   return (
-    <div className="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm">
-      <h2 className="font-semibold">Fotos</h2>
-      <input ref={inputRef} type="file" accept="image/*" capture="environment" onChange={handleFile} className="hidden" />
+    <Card>
+      <CardHeader>
+        <CardTitle>Fotos</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
+        <input ref={inputRef} type="file" accept="image/*" capture="environment" onChange={handleFile} className="hidden" />
 
-      <ul className="flex flex-col gap-3">
-        {categories.map((category) => {
+        {[...REQUIRED_PHOTOS, 'other'].map((category) => {
           const photos = activity.photos.filter((photo) => photo.category === category);
           const isRequired = category !== 'other';
           const done = photos.length > 0;
+          const StatusIcon = !isRequired ? Plus : done ? CircleCheck : Circle;
           return (
-            <li key={category} className="rounded-xl border border-slate-200 p-3">
+            <div key={category} className="rounded-lg border p-3">
               <div className="flex items-center justify-between gap-2">
-                <p className="font-medium">
-                  {isRequired ? (done ? '✅' : '⬜') : '➕'} {PHOTO_CATEGORY_LABELS[category]}
-                  {isRequired && !done && <span className="ml-1 text-xs text-red-700">obligatoria</span>}
+                <p className="flex items-center gap-2 font-medium">
+                  <StatusIcon className={`size-5 ${done ? 'text-emerald-600' : 'text-muted-foreground'}`} />
+                  {PHOTO_CATEGORY_LABELS[category]}
+                  {isRequired && !done && <span className="text-xs text-destructive">obligatoria</span>}
                 </p>
-                <button
-                  type="button"
-                  onClick={() => openCamera(category)}
-                  disabled={uploadingCategory !== null}
-                  className="shrink-0 rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium disabled:opacity-60"
-                >
-                  {uploadingCategory === category ? 'Subiendo…' : '📷 Tomar'}
-                </button>
+                <Button variant="secondary" size="lg" onClick={() => openCamera(category)} disabled={uploadingCategory !== null}>
+                  {uploadingCategory === category ? <LoaderCircle className="animate-spin" /> : <Camera />}
+                  {uploadingCategory === category ? 'Subiendo…' : 'Tomar'}
+                </Button>
               </div>
               {photos.length > 0 && (
                 <div className="mt-2 grid grid-cols-3 gap-2">
                   {photos.map((photo) => (
                     <div key={photo.id} className="relative">
-                      <img src={apiUrl(photo.url)} alt={PHOTO_CATEGORY_LABELS[category]} className="aspect-square w-full rounded-lg object-cover" />
-                      <button
-                        type="button"
+                      <img
+                        src={apiUrl(photo.url)}
+                        alt={PHOTO_CATEGORY_LABELS[category]}
+                        className="aspect-square w-full rounded-md object-cover"
+                      />
+                      <Button
+                        variant="secondary"
+                        size="icon-sm"
                         onClick={() => handleDelete(photo.id)}
                         aria-label="Eliminar foto"
-                        className="absolute top-1 right-1 rounded-full bg-black/60 px-2 text-sm text-white"
+                        className="absolute top-1 right-1 rounded-full bg-black/60 text-white hover:bg-black/80"
                       >
-                        ×
-                      </button>
+                        <X />
+                      </Button>
                     </div>
                   ))}
                 </div>
               )}
-            </li>
+            </div>
           );
         })}
-      </ul>
-      {error && <p className="text-sm text-red-700">{error}</p>}
-    </div>
+        <ErrorMessage>{error}</ErrorMessage>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -140,7 +150,10 @@ function ReportAndFinishStep({ activity, onChange }) {
   const [finishing, setFinishing] = useState(false);
   const [error, setError] = useState('');
   const isDirty = draft !== activity.report;
-  const canFinish = activity.missing_photos.length === 0 && draft.trim() !== '';
+  const missing = [
+    ...activity.missing_photos.map((category) => PHOTO_CATEGORY_LABELS[category]),
+    ...(draft.trim() === '' ? ['el informe'] : []),
+  ];
 
   async function saveReport() {
     const result = await request(`/activities/${activity.id}/report`, { method: 'PATCH', body: { report: draft } });
@@ -175,51 +188,42 @@ function ReportAndFinishStep({ activity, onChange }) {
 
   return (
     <>
-      <div className="flex flex-col gap-2 rounded-2xl bg-white p-4 shadow-sm">
-        <label htmlFor="report" className="font-semibold">
-          Informe
-        </label>
-        <textarea
-          id="report"
-          rows={6}
-          maxLength={MAX_REPORT_LENGTH}
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          placeholder="¿Qué encontraste y qué hiciste?"
-          className="rounded-xl border border-slate-300 px-4 py-3 text-base"
-        />
-        <div className="flex items-center justify-between text-xs text-slate-500">
-          <span>
-            {draft.length} / {MAX_REPORT_LENGTH}
-          </span>
-          {isDirty && <span className="text-amber-700">Sin guardar</span>}
-        </div>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving || !isDirty}
-          className="rounded-xl border border-brand py-3 font-semibold text-brand disabled:opacity-50"
-        >
-          {saving ? 'Guardando…' : 'Guardar informe'}
-        </button>
-      </div>
+      <Card>
+        <CardContent className="flex flex-col gap-2">
+          <Label htmlFor="report" className="text-base">
+            Informe
+          </Label>
+          <Textarea
+            id="report"
+            rows={6}
+            maxLength={MAX_REPORT_LENGTH}
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            placeholder="¿Qué encontraste y qué hiciste?"
+            className="text-base"
+          />
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>
+              {draft.length} / {MAX_REPORT_LENGTH}
+            </span>
+            {isDirty && <span className="text-amber-700">Sin guardar</span>}
+          </div>
+          <Button variant="outline" size="touch" onClick={handleSave} disabled={saving || !isDirty}>
+            {saving ? 'Guardando…' : 'Guardar informe'}
+          </Button>
+        </CardContent>
+      </Card>
 
-      <div className="flex flex-col gap-2 rounded-2xl bg-white p-4 shadow-sm">
-        {!canFinish && (
-          <p className="text-sm text-slate-600">
-            Para terminar faltan:{' '}
-            {[
-              ...activity.missing_photos.map((category) => PHOTO_CATEGORY_LABELS[category]),
-              ...(draft.trim() === '' ? ['el informe'] : []),
-            ].join(', ')}
-            .
-          </p>
-        )}
-        <button type="button" onClick={handleFinish} disabled={!canFinish || finishing} className={primaryButton}>
-          {finishing ? 'Cerrando…' : '✅ Terminé'}
-        </button>
-        {error && <p className="text-sm text-red-700">{error}</p>}
-      </div>
+      <Card>
+        <CardContent className="flex flex-col gap-3">
+          {missing.length > 0 && <p className="text-muted-foreground">Para terminar faltan: {missing.join(', ')}.</p>}
+          <Button size="touch" onClick={handleFinish} disabled={missing.length > 0 || finishing}>
+            {finishing ? <LoaderCircle className="animate-spin" /> : <CircleCheck />}
+            {finishing ? 'Cerrando…' : 'Terminé'}
+          </Button>
+          <ErrorMessage>{error}</ErrorMessage>
+        </CardContent>
+      </Card>
     </>
   );
 }

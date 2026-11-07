@@ -1,25 +1,27 @@
+import { LogOut } from 'lucide-react';
 import { Link, Outlet } from 'react-router';
-import { useAuth } from '../auth/AuthContext.jsx';
-import { homePathFor } from '../auth/roles.js';
-import { ROLE_LABELS } from '../lib/labels.js';
+import { useAuth } from '@/auth/AuthContext';
+import { homePathFor } from '@/auth/roles';
+import { Button } from '@/components/ui/button';
+import { ROLE_LABELS } from '@/lib/labels';
 
 // Shell for every signed-in screen: header on top, the current page below.
-// TODO(T4): replace the inline header with Sebas's <Header userName roleLabel onLogout />.
 export default function AppLayout() {
   const { user, logout } = useAuth();
 
   return (
-    <div className="mx-auto min-h-dvh max-w-md bg-slate-50">
-      <header className="sticky top-0 z-10 flex items-center justify-between bg-brand px-4 py-3 text-white">
+    <div className="mx-auto min-h-dvh max-w-md">
+      <header className="sticky top-0 z-10 flex items-center justify-between bg-primary px-4 py-3 text-primary-foreground shadow-sm">
         <Link to={homePathFor(user.role)}>
           <p className="font-bold">Brújula</p>
           <p className="text-sm opacity-90">
             {user.name} · {ROLE_LABELS[user.role]}
           </p>
         </Link>
-        <button type="button" onClick={logout} className="rounded-lg bg-white/15 px-3 py-2 text-sm font-medium">
+        <Button variant="ghost" size="lg" onClick={logout} className="text-primary-foreground hover:bg-white/15 hover:text-primary-foreground">
+          <LogOut />
           Salir
-        </button>
+        </Button>
       </header>
       <main className="p-4">
         <Outlet />
