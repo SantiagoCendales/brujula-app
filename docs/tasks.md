@@ -10,6 +10,8 @@ Lugar único de las tareas de Sebas. Se actualiza en el mismo commit que el cód
 
 ## 📣 Novedades que afectan al front
 
+- **[bloque 4]** La app ya se empaqueta para Android con Capacitor (`web/android/`). No cambia nada en cómo se escriben las pantallas: el mismo código corre en el navegador y en el APK. Lo único: **cámara y GPS siempre por `web/src/lib/device.js`**, porque ahí se decide si se usa el navegador o el celular nativo.
+- **[bloque 4]** Hay dependencias nuevas: después del `git pull`, correr `npm install`.
 - **[UI] Pasamos a shadcn/ui.** Los componentes base (`Button`, `Card`, `Badge`, `Input`, `Label`, `Textarea`, `NativeSelect`, `Dialog`, `Alert`, `Skeleton`, `Separator`) ya están en `web/src/components/ui/`. **No hay que crearlos:** se importan con `import { Button } from '@/components/ui/button'`. Ejemplos de uso en cualquier página de `web/src/pages/`.
 - **[UI]** Reglas de estilo (están en `AGENTS.md`): colores solo con tokens del tema (`bg-primary`, `text-muted-foreground`, `text-destructive`, `border`), nunca `bg-brand`, hex ni grises sueltos. Acciones principales con `<Button size="touch">`. Íconos de `lucide-react` (`import { Camera } from 'lucide-react'`), no emojis.
 - **[UI]** Ya existen `components/StatusBadge.jsx` (etiqueta de color por estado) y `components/ErrorMessage.jsx` (alerta roja). Usarlos.

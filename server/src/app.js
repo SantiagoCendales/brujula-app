@@ -1,5 +1,7 @@
+import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
+import { config } from './config.js';
 import { pool } from './db/pool.js';
 import { errorHandler, HttpError } from './lib/errors.js';
 import { activitiesRouter } from './routes/activities.js';
@@ -17,6 +19,7 @@ export function createApp() {
   // this makes req.ip the real client IP, which the login rate limit relies on.
   app.set('trust proxy', 1);
   app.use(helmet());
+  app.use('/api', cors({ origin: config.corsOrigins }));
   app.use(express.json({ limit: '100kb' }));
 
   app.get('/api/health', async (_req, res) => {

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Brújula</string>
+    <string name="title_activity_main">Brújula</string>
+    <string name="package_name">app.brujula.field</string>
+    <string name="custom_url_scheme">app.brujula.field</string>
+</resources>

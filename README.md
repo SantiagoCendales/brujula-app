@@ -51,6 +51,17 @@ npm run dev:web                 # http://localhost:5173
 
 Si la pantalla de inicio muestra "✅ API y base de datos conectadas", está todo bien.
 
+## App Android (Capacitor)
+
+El proyecto Android está en `web/android/` y se genera a partir del mismo código de `web/src`. Hace falta Android Studio con el SDK instalado.
+
+1. La API tiene que estar alcanzable por HTTPS desde el celular. En desarrollo: `npm run dev:server`, `npm run dev:web` y un túnel `ngrok http --url=<tu-dominio> 5173`.
+2. `cp web/.env.android.example web/.env.android` y poner esa URL en `VITE_API_URL`.
+3. `npm run android:build`: compila la web con esa URL y la copia al proyecto Android.
+4. `npm run android:open`: abre Android Studio. Con el celular conectado por USB y la depuración USB activada, tocar ▶ (Run).
+
+Después de cambiar código del front, repetir el paso 3 y volver a tocar ▶.
+
 ## Usuarios de demo
 
 Contraseña de todos: `brujula123`, salvo que se defina `SEED_PASSWORD` en `server/.env`.

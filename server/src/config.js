@@ -23,6 +23,8 @@ export const config = {
   jwtSecret: requiredSecret('JWT_SECRET'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '12h',
   uploadsDir: path.resolve(process.env.UPLOADS_DIR ?? 'uploads'),
+  // Origins of the native apps (Capacitor serves the app from https://localhost on Android, capacitor://localhost on iOS).
+  corsOrigins: (process.env.CORS_ORIGINS ?? 'https://localhost,capacitor://localhost').split(',').map((origin) => origin.trim()),
   isProduction: process.env.NODE_ENV === 'production',
   isTest: process.env.NODE_ENV === 'test',
 };

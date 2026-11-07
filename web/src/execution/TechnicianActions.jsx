@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { apiUrl, request } from '@/lib/api';
-import { compressImage, getLocation } from '@/lib/device';
+import { compressImage, getLocation, isNativeApp, takeNativePhoto } from '@/lib/device';
 import { PHOTO_CATEGORY_LABELS } from '@/lib/labels';
 import { MAX_REPORT_LENGTH, REQUIRED_PHOTOS } from '@/lib/rules';
 
@@ -49,22 +49,12 @@ function PhotosStep({ activity, onChange }) {
   const [uploadingCategory, setUploadingCategory] = useState(null);
   const [error, setError] = useState('');
 
-  function openCamera(category) {
-    setPendingCategory(category);
-    setError('');
-    inputRef.current.click();
-  }
-
-  async function handleFile(event) {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file || !pendingCategory) return;
-
-    setUploadingCategory(pendingCategory);
+  async function uploadPhoto(category, image) {
+    setUploadingCategory(category);
     try {
-      const compressed = await compressImage(file);
+      const compressed = await compressImage(image);
       const form = new FormData();
-      form.append('category', pendingCategory);
+      form.append('category', category);
       form.append('photo', compressed, 'photo.jpg');
       const result = await request(`/activities/${activity.id}/photos`, { method: 'POST', body: form });
       onChange(result.activity);
@@ -72,8 +62,30 @@ function PhotosStep({ activity, onChange }) {
       setError(uploadError.message);
     } finally {
       setUploadingCategory(null);
-      setPendingCategory(null);
     }
+  }
+
+  async function openCamera(category) {
+    setError('');
+    if (!isNativeApp) {
+      setPendingCategory(category);
+      inputRef.current.click();
+      return;
+    }
+    try {
+      const image = await takeNativePhoto();
+      if (image) await uploadPhoto(category, image);
+    } catch (cameraError) {
+      setError(cameraError.message);
+    }
+  }
+
+  async function handleFile(event) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    const category = pendingCategory;
+    setPendingCategory(null);
+    if (file && category) await uploadPhoto(category, file);
   }
 
   async function handleDelete(photoId) {

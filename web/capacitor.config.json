@@ -1,0 +1,8 @@
+{
+  "appId": "app.brujula.field",
+  "appName": "Brújula",
+  "webDir": "dist",
+  "android": {
+    "overrideUserAgent": "BrujulaApp/0.1 (Android)"
+  }
+}
