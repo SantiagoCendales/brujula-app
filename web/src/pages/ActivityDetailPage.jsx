@@ -50,6 +50,7 @@ function AssignForm({ activity, onAssigned }) {
   const [technicianId, setTechnicianId] = useState(activity.technician?.id ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const actionLabel = activity.technician ? 'Reasignar' : 'Asignar';
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -71,7 +72,7 @@ function AssignForm({ activity, onAssigned }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{activity.technician ? 'Reasignar técnico' : 'Asignar técnico'}</CardTitle>
+        <CardTitle>{actionLabel} técnico</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -91,7 +92,7 @@ function AssignForm({ activity, onAssigned }) {
           </NativeSelect>
           <ErrorMessage>{error}</ErrorMessage>
           <Button type="submit" size="touch" disabled={saving || !technicianId}>
-            {saving ? 'Guardando…' : 'Asignar'}
+            {saving ? 'Guardando…' : actionLabel}
           </Button>
         </form>
       </CardContent>
