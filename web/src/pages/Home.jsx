@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import ActivityCard from '@/components/ActivityCard';
+import StatusFilter from '@/components/StatusFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { request } from '@/lib/api';
+import { STATUS_LABELS } from '@/lib/labels';
 
 const sampleActivities = [
   {
@@ -31,6 +33,7 @@ const sampleActivities = [
 // API status screen (/status). Also the place to preview components while building them.
 export default function Home() {
   const [health, setHealth] = useState({ loading: true });
+  const [selectedStatus, setSelectedStatus] = useState('');
 
   useEffect(() => {
     request('/health')
@@ -65,6 +68,14 @@ export default function Home() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="font-semibold">Filtro de estados</h2>
+        <StatusFilter value={selectedStatus} onChange={setSelectedStatus} />
+        <p className="text-sm text-muted-foreground">
+          Filtro elegido: {selectedStatus ? STATUS_LABELS[selectedStatus] : 'Todas'}
+        </p>
       </section>
     </main>
   );

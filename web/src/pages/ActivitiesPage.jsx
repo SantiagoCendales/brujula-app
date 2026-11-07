@@ -2,15 +2,12 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import ActivityCard from '@/components/ActivityCard';
 import ErrorMessage from '@/components/ErrorMessage';
+import StatusFilter from '@/components/StatusFilter';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { STATUS_LABELS } from '@/lib/labels';
 import { useApi } from '@/lib/useApi';
 
-const FILTER_STATUSES = ['requested', 'assigned', 'on_site', 'report_ready', 'validated', 'delivered'];
-
 // One list screen for every role; the API already returns only what each role may see.
-// TODO(T7): replace the inline filter chips with Sebas's <StatusFilter />.
 export default function ActivitiesPage({
   title,
   baseQuery = '',
@@ -42,21 +39,7 @@ export default function ActivitiesPage({
         )}
       </div>
 
-      {showFilter && (
-        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
-          {['', ...FILTER_STATUSES].map((value) => (
-            <Button
-              key={value || 'all'}
-              variant={status === value ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setStatus(value)}
-              className="shrink-0 rounded-full"
-            >
-              {value ? STATUS_LABELS[value] : 'Todas'}
-            </Button>
-          ))}
-        </div>
-      )}
+      {showFilter && <StatusFilter value={status} onChange={setStatus} />}
 
       <ErrorMessage>{error?.message}</ErrorMessage>
       {loading && !data && (

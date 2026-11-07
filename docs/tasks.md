@@ -28,12 +28,6 @@ Lugar único de las tareas de Sebas. Se actualiza en el mismo commit que el cód
 
 Todos van en `web/src/components/`, se arman con los componentes de `components/ui/` y son de presentación: reciben datos por props y **no llaman a la API** (Santiago los conecta). Cada uno tiene una versión provisoria en las páginas, marcada con `TODO(T…)`: mirala, entendé qué hace y sacala a su propio componente, más prolija.
 
-### T7 · `StatusFilter.jsx`
-- Props: `value` (estado elegido, o `''` para "Todas") y `onChange(nuevoValor)`.
-- Fila con scroll horizontal de `<Button size="sm" className="rounded-full">`: "Todas" más los estados (sin `returned`), con `STATUS_LABELS`. La elegida con `variant="default"`, las demás con `variant="outline"`.
-- Referencia: las píldoras en `pages/ActivitiesPage.jsx`.
-- **Terminado cuando:** en `/status`, al tocar una se resalta y el valor elegido se muestra debajo.
-
 ### T8 · `EventTimeline.jsx`
 - Props: `events` (la lista `events` de `activity_detail`).
 - Línea de tiempo vertical dentro de un `<Card>`: por cada evento, un punto de color `bg-primary` sobre una línea, el texto (`STATUS_LABELS[event.to_status]`, o `EVENT_TYPE_LABELS[event.type]` si no cambió de estado), quién lo hizo y cuándo.
@@ -62,12 +56,22 @@ Todos van en `web/src/components/`, se arman con los componentes de `components/
 
 ## 🔄 En curso
 
-_(nada)_
+### T7 · `StatusFilter.jsx`
+- Props: `value` (estado elegido, o `''` para "Todas") y `onChange(nuevoValor)`.
+- Fila con scroll horizontal de `<Button size="sm" className="rounded-full">`: "Todas" más los estados (sin `returned`), con `STATUS_LABELS`. La elegida con `variant="default"`, las demás con `variant="outline"`.
+- Referencia: las píldoras en `pages/ActivitiesPage.jsx`.
+- **Terminado cuando:** en `/status`, al tocar una se resalta y el valor elegido se muestra debajo.
 
 ## ✅ Hechas
 
 - **T6 · `ActivityCard`:** revisada y conectada en todas las listas (`pages/ActivitiesPage.jsx`). 👏
 - **T0 · Setup:** clonar, instalar y conectar el front a la API por ngrok.
+
+### T6 · `ActivityCard.jsx`
+- Props: `activity` (un `activity_summary` de `docs/api.md`) y `to` (la ruta del detalle).
+- Un `<Link to={to}>` de `react-router` que envuelve un `<Card size="sm">` con: placa y tipo (`ACTIVITY_TYPE_LABELS`), la empresa, `<StatusBadge>`, la descripción en máximo 2 líneas (`line-clamp-2`), el técnico si tiene, y la fecha (`scheduled_for` o, si no hay, `created_at`, con `formatDateTime`).
+- Referencia: el card en `pages/ActivitiesPage.jsx`.
+- **Terminado cuando:** en `/status` se ven dos cards con datos de ejemplo de `docs/api.md`: uno con técnico y otro sin; probado en viewport móvil, sin errores en consola y publicado.
 
 ## ❌ Ya no hacen falta (las cubre shadcn/ui)
 
