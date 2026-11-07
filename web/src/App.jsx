@@ -2,9 +2,12 @@ import { Navigate, Route, Routes } from 'react-router';
 import { useAuth } from './auth/AuthContext.jsx';
 import RequireAuth from './auth/RequireAuth.jsx';
 import { homePathFor } from './auth/roles.js';
+import AppLayout from './layout/AppLayout.jsx';
+import ActivitiesPage from './pages/ActivitiesPage.jsx';
+import ActivityDetailPage from './pages/ActivityDetailPage.jsx';
 import Home from './pages/Home.jsx';
 import Login from './pages/Login.jsx';
-import RoleHome from './pages/RoleHome.jsx';
+import NewActivityPage from './pages/NewActivityPage.jsx';
 
 function RootRedirect() {
   const { user, checking } = useAuth();
@@ -12,43 +15,67 @@ function RootRedirect() {
   return <Navigate to={user ? homePathFor(user.role) : '/login'} replace />;
 }
 
+function roleSection(roles) {
+  return (
+    <RequireAuth roles={roles}>
+      <AppLayout />
+    </RequireAuth>
+  );
+}
+
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/status" element={<Home />} />
-      <Route
-        path="/coordinator/*"
-        element={
-          <RequireAuth roles={['coordinator', 'admin']}>
-            <RoleHome />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/technician/*"
-        element={
-          <RequireAuth roles={['technician']}>
-            <RoleHome />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/cec/*"
-        element={
-          <RequireAuth roles={['cec', 'admin']}>
-            <RoleHome />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/client/*"
-        element={
-          <RequireAuth roles={['client']}>
-            <RoleHome />
-          </RequireAuth>
-        }
-      />
+
+      <Route path="/coordinator" element={roleSection(['coordinator', 'admin'])}>
+        <Route
+          index
+          element={
+            <ActivitiesPage
+              title="Actividades"
+              basePath="/coordinator/activities"
+              newActivityPath="/coordinator/new"
+              newActivityLabel="+ Nueva"
+            />
+          }
+        />
+        <Route path="new" element={<NewActivityPage basePath="/coordinator" />} />
+        <Route path="activities/:id" element={<ActivityDetailPage backPath="/coordinator" />} />
+      </Route>
+
+      <Route path="/technician" element={roleSection(['technician'])}>
+        <Route
+          index
+          element={
+            <ActivitiesPage title="Mis pendientes" baseQuery="view=pending" basePath="/technician/activities" showFilter={false} />
+          }
+        />
+        <Route path="activities/:id" element={<ActivityDetailPage backPath="/technician" />} />
+      </Route>
+
+      <Route path="/cec" element={roleSection(['cec', 'admin'])}>
+        <Route index element={<ActivitiesPage title="Actividades" basePath="/cec/activities" />} />
+        <Route path="activities/:id" element={<ActivityDetailPage backPath="/cec" />} />
+      </Route>
+
+      <Route path="/client" element={roleSection(['client'])}>
+        <Route
+          index
+          element={
+            <ActivitiesPage
+              title="Mis servicios"
+              basePath="/client/activities"
+              newActivityPath="/client/new"
+              newActivityLabel="+ Solicitar"
+            />
+          }
+        />
+        <Route path="new" element={<NewActivityPage basePath="/client" />} />
+        <Route path="activities/:id" element={<ActivityDetailPage backPath="/client" />} />
+      </Route>
+
       <Route path="*" element={<RootRedirect />} />
     </Routes>
   );

@@ -13,6 +13,11 @@ export class ApiError extends Error {
   }
 }
 
+// For URLs the API returns ready to use, like signed photo URLs ("/api/photos/…").
+export function apiUrl(path) {
+  return `${BASE_URL}${path}`;
+}
+
 let handleUnauthorized = () => {};
 
 // The auth provider registers here to log the user out when the API rejects their session.

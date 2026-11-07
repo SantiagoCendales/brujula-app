@@ -10,6 +10,10 @@ Lugar único de las tareas de Sebas. Se actualiza en el mismo commit que el cód
 
 ## 📣 Novedades que afectan al front
 
+- **[bloque 2]** Ya funcionan listar, ver, crear y asignar actividades (`/activities`). Ver `docs/api.md`.
+- **[bloque 2]** Ya existen las pantallas del coordinador (lista con filtro, nueva actividad, detalle con asignación) y del cliente (sus servicios, nueva solicitud, detalle). Están en `pages/ActivitiesPage.jsx`, `pages/NewActivityPage.jsx` y `pages/ActivityDetailPage.jsx`, con estilos provisorios escritos directo en la página. Cada lugar donde va un componente tuyo está marcado con `TODO(T…)`: cuando lo termines, Santiago lo reemplaza.
+- **[bloque 2]** Para pedir datos a la API desde una pantalla está `useApi(path)` en `web/src/lib/useApi.js`, y para mostrar fechas `formatDateTime(iso)` en `web/src/lib/format.js`.
+- **[bloque 2]** `pages/RoleHome.jsx` ya no existe: el encabezado vive en `layout/AppLayout.jsx` (ahí va a ir tu `Header` de T4).
 - **[bloque 1]** Ya funcionan `/auth/login`, `/auth/me`, `/catalogs`, `/companies`, `/users` y `/vehicles`. Detalle en `docs/api.md` (las secciones listas tienen ✅).
 - **[bloque 1]** Las etiquetas en español de cada valor están en `web/src/lib/labels.js` (`STATUS_LABELS`, `ROLE_LABELS`, `ACTIVITY_TYPE_LABELS`, `PHOTO_CATEGORY_LABELS`). Usarlas siempre, nunca armar otro mapeo.
 - **[bloque 1]** El login ya funciona y cada rol cae en su inicio (`/coordinator`, `/technician`, `/cec`, `/client`). La pantalla de estado de la API pasó a `/status` (`pages/Home.jsx`). Para ver un componente mientras se arma, importarlo ahí.
@@ -48,6 +52,33 @@ Bloque 1. Todos van en `web/src/components/`. Son de presentación: reciben dato
 - Campos "Correo" (`type="email"`) y "Contraseña" (`type="password"`), y un botón "Entrar" (usar `Button` de T1). Maneja su propio estado con `useState`.
 - Referencia: el formulario provisorio de `pages/Login.jsx`.
 - **Terminado cuando:** en `/status` se ve el formulario y al enviar muestra los datos en la consola. Santiago lo conecta al login real.
+
+Bloque 2. También en `web/src/components/` y también de presentación. Conviene hacerlos después de T1–T5, porque los usan. Cada uno tiene una versión provisoria en las páginas como referencia: mirala, entendé qué hace y armá la versión prolija.
+
+### T6 · `ActivityCard.jsx`
+- Props: `activity` (un `activity_summary` de `docs/api.md`) y `to` (la ruta del detalle).
+- Usa `Card` (T2), `StatusBadge` (T3), `ACTIVITY_TYPE_LABELS` y `formatDateTime`. Todo el card es un `<Link to={to}>` de `react-router`.
+- Muestra placa y tipo, la empresa, el estado, la descripción (máximo 2 líneas: `line-clamp-2`), el técnico si tiene, y la fecha (`scheduled_for` o, si no hay, `created_at`).
+- Referencia: el card provisorio en `pages/ActivitiesPage.jsx` (`TODO(T6, T7)`).
+- **Terminado cuando:** en `/status` se ven dos cards con datos de ejemplo de `docs/api.md`: uno con técnico y otro sin técnico.
+
+### T7 · `StatusFilter.jsx`
+- Props: `value` (estado elegido, o `''` para "Todas") y `onChange(nuevoValor)`.
+- Fila de píldoras con scroll horizontal: "Todas" más los estados (sin `returned`), con las etiquetas de `STATUS_LABELS`. La elegida se ve resaltada con `bg-brand text-white`.
+- Referencia: las píldoras provisorias en `pages/ActivitiesPage.jsx`.
+- **Terminado cuando:** en `/status`, al tocar una píldora se resalta y el valor elegido se muestra debajo.
+
+### T8 · `EventTimeline.jsx`
+- Props: `events` (la lista `events` de `activity_detail`).
+- Línea de tiempo vertical: por cada evento, el estado al que pasó (`STATUS_LABELS[event.to_status]`), quién lo hizo y cuándo (`formatDateTime`).
+- Referencia: el bloque "Historial" en `pages/ActivityDetailPage.jsx` (`TODO(T8)`).
+- **Terminado cuando:** en `/status` se ve una línea de tiempo con 3 eventos de ejemplo.
+
+### T9 · `TechnicianSelect.jsx`
+- Props: `technicians` (lista de `{ id, name }`), `value`, `onChange(id)` y `placeholder` (por defecto "Elegir técnico…").
+- Un `<select>` grande y cómodo (`rounded-xl border px-4 py-3 w-full`).
+- Referencia: el select de `AssignForm` en `pages/ActivityDetailPage.jsx` (`TODO(T9)`).
+- **Terminado cuando:** en `/status` se ve con 3 técnicos de ejemplo y al elegir uno se muestra su id debajo.
 
 ## 🔄 En curso
 

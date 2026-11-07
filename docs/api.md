@@ -139,7 +139,9 @@ El token dura 12 horas.
 
 La placa se guarda en mayúsculas y es única.
 
-### Actividades 🔜
+### Actividades (en parte ✅)
+
+Ya funcionan: listar, ver detalle, crear y asignar. Llegué, informe, fotos, Terminé, validar y entregar siguen 🔜.
 
 | Método | Ruta | Quién | Recibe | Devuelve |
 |---|---|---|---|---|

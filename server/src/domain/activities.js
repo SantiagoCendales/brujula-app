@@ -1,5 +1,12 @@
+import { HttpError } from '../lib/errors.js';
+import { signedPhotoUrl } from '../lib/photos.js';
 import { activityScope } from './access.js';
-import { TECHNICIAN_HISTORY_STATUSES, TECHNICIAN_PENDING_STATUSES } from './rules.js';
+import {
+  CLIENT_REPORT_VISIBLE_STATUSES,
+  REQUIRED_PHOTOS,
+  TECHNICIAN_HISTORY_STATUSES,
+  TECHNICIAN_PENDING_STATUSES,
+} from './rules.js';
 
 export const ACTIVITY_SELECT = `
   select a.*, v.plate, v.make, v.model, c.name as company_name,
@@ -30,6 +37,34 @@ export function toActivitySummary(row) {
   };
 }
 
+function toPhoto(row) {
+  return {
+    id: row.id,
+    category: row.category,
+    mime_type: row.mime_type,
+    size_bytes: row.size_bytes,
+    uploaded_at: row.uploaded_at,
+    url: signedPhotoUrl(row.id),
+  };
+}
+
+function toEvent(row) {
+  return {
+    id: row.id,
+    type: row.type,
+    from_status: row.from_status,
+    to_status: row.to_status,
+    note: row.note,
+    data: row.data,
+    created_at: row.created_at,
+    user: { id: row.user_id, name: row.user_name },
+  };
+}
+
+function location(at, lat, lng, accuracy) {
+  return at ? { at, lat, lng, accuracy_m: accuracy } : null;
+}
+
 const EQUALITY_FILTERS = ['status', 'vehicle_id', 'technician_id', 'company_id'];
 
 export async function listActivities(db, user, filters = {}) {
@@ -55,4 +90,83 @@ export async function listActivities(db, user, filters = {}) {
     params,
   );
   return rows.map(toActivitySummary);
+}
+
+// Answers 404 both when the activity does not exist and when the user may not see it.
+export async function findVisibleActivity(db, id, user) {
+  const params = [id];
+  const scope = activityScope(user, params);
+  const { rows } = await db.query(`${ACTIVITY_SELECT} where a.id = $1 and ${scope}`, params);
+  if (!rows[0]) throw new HttpError(404, 'not_found', 'Actividad no encontrada');
+  return rows[0];
+}
+
+export async function getActivityDetail(db, id, user) {
+  const row = await findVisibleActivity(db, id, user);
+  const isClient = user.role === 'client';
+  const reportVisible = !isClient || CLIENT_REPORT_VISIBLE_STATUSES.includes(row.status);
+
+  const photos = reportVisible
+    ? (await db.query('select * from photos where activity_id = $1 order by uploaded_at, id', [id])).rows
+    : [];
+  const events = isClient
+    ? []
+    : (
+        await db.query(
+          `select e.*, u.name as user_name from activity_events e
+           join users u on u.id = e.user_id
+           where e.activity_id = $1 order by e.created_at, e.id`,
+          [id],
+        )
+      ).rows;
+  const photoCategories = new Set(photos.map((photo) => photo.category));
+
+  return {
+    ...toActivitySummary(row),
+    arrival: location(row.arrived_at, row.arrival_lat, row.arrival_lng, row.arrival_accuracy_m),
+    finish: location(row.finished_at, row.finish_lat, row.finish_lng, row.finish_accuracy_m),
+    report: reportVisible ? row.report : null,
+    photos: photos.map(toPhoto),
+    missing_photos: isClient ? [] : REQUIRED_PHOTOS.filter((category) => !photoCategories.has(category)),
+    events: events.map(toEvent),
+  };
+}
+
+export async function recordEvent(db, { activityId, userId, type, fromStatus = null, toStatus = null, note = null, data = null }) {
+  await db.query(
+    `insert into activity_events (activity_id, user_id, type, from_status, to_status, note, data)
+     values ($1, $2, $3, $4, $5, $6, $7)`,
+    [activityId, userId, type, fromStatus, toStatus, note, data],
+  );
+}
+
+// Moves an activity to a new status inside a transaction: locks the row, checks the current status
+// is one of `from`, applies `changes` and records the event. `changes` keys are column names from our code.
+export async function transition(db, { activityId, userId, from, to, type, changes = {}, note = null, data = null }) {
+  const { rows } = await db.query('select status from activities where id = $1 for update', [activityId]);
+  const currentStatus = rows[0].status;
+  if (!from.includes(currentStatus)) {
+    throw new HttpError(409, 'invalid_status', 'La actividad no está en un estado que permita esta acción', {
+      status: currentStatus,
+    });
+  }
+
+  const params = [activityId, to];
+  const assignments = ['status = $2', 'updated_at = now()'];
+  for (const [column, value] of Object.entries(changes)) {
+    params.push(value);
+    assignments.push(`${column} = $${params.length}`);
+  }
+  await db.query(`update activities set ${assignments.join(', ')} where id = $1`, params);
+  await recordEvent(db, { activityId, userId, type, fromStatus: currentStatus, toStatus: to, note, data });
+}
+
+export async function ensureActiveTechnician(db, technicianId) {
+  const { rows } = await db.query('select role, active from users where id = $1', [technicianId]);
+  const technician = rows[0];
+  if (technician?.role !== 'technician' || !technician.active) {
+    throw new HttpError(400, 'validation_error', 'El técnico no existe o no está activo', [
+      { field: 'technician_id', message: 'Técnico inválido' },
+    ]);
+  }
 }
