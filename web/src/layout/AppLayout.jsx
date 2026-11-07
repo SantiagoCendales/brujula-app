@@ -3,6 +3,8 @@ import { Link, Outlet, useLocation } from 'react-router';
 import { useAuth } from '@/auth/AuthContext';
 import { homePathFor } from '@/auth/roles';
 import { Button } from '@/components/ui/button';
+import { Toaster } from '@/components/ui/sonner';
+import AssignmentNotifier from '@/layout/AssignmentNotifier';
 import { ROLE_LABELS } from '@/lib/labels';
 import { useLiveStatus } from '@/lib/liveUpdates';
 
@@ -93,6 +95,8 @@ export default function AppLayout() {
       <main className="p-4">
         <Outlet />
       </main>
+      <Toaster position="top-center" richColors closeButton />
+      <AssignmentNotifier />
     </div>
   );
 }

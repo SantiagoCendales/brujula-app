@@ -18,7 +18,13 @@ function canSee(user, change) {
 }
 
 function publish(change) {
-  const event = { type: 'activity.changed', activity_id: change.activityId, status: change.status };
+  const event = {
+    type: 'activity.changed',
+    activity_id: change.activityId,
+    status: change.status,
+    // Lets the technician's app tell "assigned to me" apart from other changes, to show a notification.
+    technician_id: change.technicianId,
+  };
   for (const subscriber of subscribers) {
     if (canSee(subscriber.user, change)) subscriber.send(event);
   }
@@ -36,6 +42,7 @@ export async function notifyActivityChanged(db, activityId, { previousTechnician
     activityId,
     companyId: activity.company_id,
     status: activity.status,
+    technicianId: activity.technician_id,
     technicianIds: [activity.technician_id, activity.performed_by, previousTechnicianId].filter(Boolean),
   });
 }

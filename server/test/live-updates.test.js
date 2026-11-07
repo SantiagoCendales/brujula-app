@@ -79,7 +79,12 @@ test('a change reaches only the users allowed to see the activity', async () => 
   assert.equal(arrived.status, 200);
   await settle();
 
-  const expected = { type: 'activity.changed', activity_id: condorActivityId, status: 'on_site' };
+  const expected = {
+    type: 'activity.changed',
+    activity_id: condorActivityId,
+    status: 'on_site',
+    technician_id: ids.users.technician1,
+  };
   assert.deepEqual(coordinator.events, [expected]);
   assert.deepEqual(clientCondor.events, [expected]);
   assert.deepEqual(clientCeiba.events, [], 'a client never hears about another company');
@@ -101,6 +106,21 @@ test('a reassigned technician is told so their list refreshes', async () => {
     technician2.events.map((event) => event.activity_id),
     [ceibaActivityId],
   );
+});
+
+test('a technician hears about a new activity assigned to them as soon as it is created', async () => {
+  const technician1 = await openStream(tokens.technician1);
+  await settle();
+
+  const created = await request(app)
+    .post('/api/activities')
+    .set(bearer(tokens.coordinator))
+    .send({ vehicle_id: ids.vehicles.condor1, type: 'gps_install', technician_id: ids.users.technician1 });
+  await settle();
+
+  assert.deepEqual(technician1.events, [
+    { type: 'activity.changed', activity_id: created.body.activity.id, status: 'assigned', technician_id: ids.users.technician1 },
+  ]);
 });
 
 test('the stream requires a valid session', async () => {

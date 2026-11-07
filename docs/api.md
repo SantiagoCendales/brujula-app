@@ -219,8 +219,10 @@ Cada vez que una actividad cambia (se crea, se asigna, Llegué, informe, fotos, 
 
 ```
 event: activity.changed
-data: {"type":"activity.changed","activity_id":12,"status":"on_site"}
+data: {"type":"activity.changed","activity_id":12,"status":"on_site","technician_id":3}
 ```
+
+`technician_id` es quién la tiene ahora (o `null`). Con `status: "assigned"` y su propio id, la app del técnico sabe que le acaban de asignar una actividad y muestra una notificación.
 
 - Coordinador, CEC y admin reciben todo. El cliente, solo lo de su empresa. El técnico, lo que tiene, lo que ejecutó y lo que le acaban de reasignar a otro.
 - El aviso no trae datos de la actividad: la pantalla vuelve a pedirlos a la API, que aplica los permisos.
