@@ -83,6 +83,8 @@ test('a change reaches only the users allowed to see the activity', async () => 
     type: 'activity.changed',
     activity_id: condorActivityId,
     status: 'on_site',
+    change: 'arrived',
+    actor_id: ids.users.technician1,
     technician_id: ids.users.technician1,
   };
   assert.deepEqual(coordinator.events, [expected]);
@@ -119,7 +121,14 @@ test('a technician hears about a new activity assigned to them as soon as it is 
   await settle();
 
   assert.deepEqual(technician1.events, [
-    { type: 'activity.changed', activity_id: created.body.activity.id, status: 'assigned', technician_id: ids.users.technician1 },
+    {
+      type: 'activity.changed',
+      activity_id: created.body.activity.id,
+      status: 'assigned',
+      change: 'created',
+      actor_id: ids.users.coordinator,
+      technician_id: ids.users.technician1,
+    },
   ]);
 });
 

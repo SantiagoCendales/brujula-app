@@ -4,7 +4,7 @@ import { useAuth } from '@/auth/AuthContext';
 import { homePathFor } from '@/auth/roles';
 import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/sonner';
-import AssignmentNotifier from '@/layout/AssignmentNotifier';
+import ActivityNotifier from '@/layout/ActivityNotifier';
 import { ROLE_LABELS } from '@/lib/labels';
 import { useLiveStatus } from '@/lib/liveUpdates';
 
@@ -95,8 +95,9 @@ export default function AppLayout() {
       <main className="p-4">
         <Outlet />
       </main>
-      <Toaster position="top-center" richColors closeButton />
-      <AssignmentNotifier />
+      {/* Offset clears the sticky header and tabs (~110 px) so notifications never cover the navigation. */}
+      <Toaster position="top-center" offset={{ top: 120 }} mobileOffset={{ top: 120, left: 12, right: 12 }} />
+      <ActivityNotifier />
     </div>
   );
 }
