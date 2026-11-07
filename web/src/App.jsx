@@ -8,6 +8,8 @@ import ActivityDetailPage from './pages/ActivityDetailPage.jsx';
 import Home from './pages/Home.jsx';
 import Login from './pages/Login.jsx';
 import NewActivityPage from './pages/NewActivityPage.jsx';
+import VehicleDetailPage from './pages/VehicleDetailPage.jsx';
+import VehiclesPage from './pages/VehiclesPage.jsx';
 
 function RootRedirect() {
   const { user, checking } = useAuth();
@@ -43,6 +45,11 @@ export default function App() {
         />
         <Route path="new" element={<NewActivityPage basePath="/coordinator" />} />
         <Route path="activities/:id" element={<ActivityDetailPage backPath="/coordinator" />} />
+        <Route path="vehicles" element={<VehiclesPage title="Vehículos" basePath="/coordinator/vehicles" />} />
+        <Route
+          path="vehicles/:id"
+          element={<VehicleDetailPage backPath="/coordinator/vehicles" activitiesPath="/coordinator/activities" />}
+        />
       </Route>
 
       <Route path="/technician" element={roleSection(['technician'])}>
@@ -54,7 +61,6 @@ export default function App() {
               baseQuery="view=pending"
               basePath="/technician/activities"
               showFilter={false}
-              secondaryLink={{ to: '/technician/history', label: 'Mi historial' }}
             />
           }
         />
@@ -66,7 +72,6 @@ export default function App() {
               baseQuery="view=history"
               basePath="/technician/activities"
               showFilter={false}
-              secondaryLink={{ to: '/technician', label: 'Mis pendientes' }}
             />
           }
         />
@@ -76,6 +81,11 @@ export default function App() {
       <Route path="/cec" element={roleSection(['cec', 'admin'])}>
         <Route index element={<ActivitiesPage title="Actividades" basePath="/cec/activities" initialStatus="report_ready" />} />
         <Route path="activities/:id" element={<ActivityDetailPage backPath="/cec" />} />
+        <Route path="vehicles" element={<VehiclesPage title="Vehículos" basePath="/cec/vehicles" />} />
+        <Route
+          path="vehicles/:id"
+          element={<VehicleDetailPage backPath="/cec/vehicles" activitiesPath="/cec/activities" />}
+        />
       </Route>
 
       <Route path="/client" element={roleSection(['client'])}>
@@ -92,6 +102,11 @@ export default function App() {
         />
         <Route path="new" element={<NewActivityPage basePath="/client" />} />
         <Route path="activities/:id" element={<ActivityDetailPage backPath="/client" />} />
+        <Route path="vehicles" element={<VehiclesPage title="Mis vehículos" basePath="/client/vehicles" />} />
+        <Route
+          path="vehicles/:id"
+          element={<VehicleDetailPage backPath="/client/vehicles" activitiesPath="/client/activities" />}
+        />
       </Route>
 
       <Route path="*" element={<RootRedirect />} />

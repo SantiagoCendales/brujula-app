@@ -10,6 +10,8 @@ Lugar único de las tareas de Sebas. Se actualiza en el mismo commit que el cód
 
 ## 📣 Novedades que afectan al front
 
+- **[vehículos]** Nueva pestaña **Vehículos** (coordinador, CEC y cliente) con búsqueda por placa y el historial de cada vehículo: `pages/VehiclesPage.jsx` y `pages/VehicleDetailPage.jsx`. El historial usa tu `ActivityCard`.
+- **[vehículos]** La navegación ahora son pestañas debajo del encabezado, definidas por rol en `layout/AppLayout.jsx` (`TABS`). Por eso `ActivitiesPage` ya no tiene el link secundario `secondaryLink`.
 - **[bloque 4]** La app ya se empaqueta para Android con Capacitor (`web/android/`). No cambia nada en cómo se escriben las pantallas: el mismo código corre en el navegador y en el APK. Lo único: **cámara y GPS siempre por `web/src/lib/device.js`**, porque ahí se decide si se usa el navegador o el celular nativo.
 - **[bloque 4]** Hay dependencias nuevas: después del `git pull`, correr `npm install`.
 - **[UI] Pasamos a shadcn/ui.** Los componentes base (`Button`, `Card`, `Badge`, `Input`, `Label`, `Textarea`, `NativeSelect`, `Dialog`, `Alert`, `Skeleton`, `Separator`) ya están en `web/src/components/ui/`. **No hay que crearlos:** se importan con `import { Button } from '@/components/ui/button'`. Ejemplos de uso en cualquier página de `web/src/pages/`.

@@ -16,7 +16,6 @@ export default function ActivitiesPage({
   newActivityLabel,
   showFilter = true,
   initialStatus = '',
-  secondaryLink,
 }) {
   const [status, setStatus] = useState(initialStatus);
   const query = new URLSearchParams(baseQuery);
@@ -30,11 +29,6 @@ export default function ActivitiesPage({
         {newActivityPath && (
           <Button asChild size="lg">
             <Link to={newActivityPath}>{newActivityLabel}</Link>
-          </Button>
-        )}
-        {secondaryLink && (
-          <Button asChild variant="link">
-            <Link to={secondaryLink.to}>{secondaryLink.label}</Link>
           </Button>
         )}
       </div>
