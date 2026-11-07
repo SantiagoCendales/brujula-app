@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { onUnauthorized, request } from '../lib/api.js';
+import { startLiveUpdates } from '../lib/liveUpdates.js';
 import { clearToken, getToken, saveToken } from '../lib/session.js';
 
 const AuthContext = createContext(null);
@@ -16,6 +17,12 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     onUnauthorized(logout);
   }, [logout]);
+
+  const userId = user?.id;
+  useEffect(() => {
+    if (!userId) return;
+    return startLiveUpdates();
+  }, [userId]);
 
   useEffect(() => {
     if (!getToken()) return;

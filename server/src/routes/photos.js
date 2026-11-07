@@ -5,6 +5,7 @@ import { ensureHolder, findVisibleActivity, getActivityDetail, invalidStatus, lo
 import { TECHNICIAN_EDITABLE_STATUSES } from '../domain/rules.js';
 import { HttpError } from '../lib/errors.js';
 import { absolutePhotoPath, deletePhotoFile, isValidPhotoSignature } from '../lib/photos.js';
+import { notifyActivityChanged } from '../realtime/activityEvents.js';
 import { idSchema, validate } from '../lib/validation.js';
 
 export const photosRouter = Router();
@@ -54,5 +55,6 @@ photosRouter.delete('/:id', authenticate, requireRole('technician'), async (req,
     });
   });
 
+  await notifyActivityChanged(pool, activity.id);
   res.json({ activity: await getActivityDetail(pool, activity.id, req.user) });
 });

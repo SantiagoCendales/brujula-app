@@ -10,6 +10,9 @@ Lugar único de las tareas de Sebas. Se actualiza en el mismo commit que el cód
 
 ## 📣 Novedades que afectan al front
 
+- **[notificaciones]** Cuando al técnico le asignan una actividad, le aparece un aviso arriba ("Nueva actividad asignada · placa · tipo" con botón **Ver**) en cualquier pantalla, y el celular vibra. Está en `layout/AssignmentNotifier.jsx`. Para mostrar avisos en otras partes: `import { toast } from 'sonner'` y `toast('Texto')` (ya hay un `<Toaster />` en `AppLayout`).
+- **[tiempo real]** Las pantallas se actualizan solas cuando alguien cambia una actividad (por ejemplo, el técnico marca Llegué y el coordinador lo ve al instante). Arriba, al lado de "Brújula", hay un indicador "En vivo".
+- **[tiempo real]** Si armás una pantalla que muestra actividades, para que se refresque sola: `const { data, reload } = useApi(...)` y después `useActivityChanges(reload)` (de `@/lib/liveUpdates`). Ejemplo en `pages/ActivitiesPage.jsx`.
 - **[devolver]** Nuevo flujo: el CEC puede **devolver** un informe con una nota; vuelve al técnico en estado "Devuelta", él corrige y lo **reenvía**. Pantallas en `execution/ReviewActions.jsx` (CEC) y `execution/TechnicianActions.jsx` (técnico).
 - **[devolver]** Agregué `returned` a tu `StatusFilter` (antes lo excluía porque estaba fuera del MVP; ahora es un estado real).
 - **[devolver]** Para el texto de un evento usar `eventLabel(event)` de `web/src/lib/labels.js`. Los eventos pueden traer `note` (la nota de la devolución). Ya se la sumé a tu `EventTimeline` (T8), junto con `eventLabel`.

@@ -3,7 +3,10 @@ import { Link, Outlet, useLocation } from 'react-router';
 import { useAuth } from '@/auth/AuthContext';
 import { homePathFor } from '@/auth/roles';
 import { Button } from '@/components/ui/button';
+import { Toaster } from '@/components/ui/sonner';
+import AssignmentNotifier from '@/layout/AssignmentNotifier';
 import { ROLE_LABELS } from '@/lib/labels';
+import { useLiveStatus } from '@/lib/liveUpdates';
 
 const TABS = {
   coordinator: [
@@ -50,6 +53,17 @@ function NavTabs({ role }) {
   );
 }
 
+function LiveIndicator() {
+  const status = useLiveStatus();
+  const isLive = status === 'live';
+  return (
+    <span className="flex items-center gap-1.5 text-xs opacity-90" title={isLive ? 'Recibiendo cambios en tiempo real' : 'Sin conexión en vivo'}>
+      <span className={`size-2 rounded-full ${isLive ? 'animate-pulse bg-emerald-300' : 'bg-amber-300'}`} />
+      {isLive ? 'En vivo' : 'Reconectando…'}
+    </span>
+  );
+}
+
 // Shell for every signed-in screen: header and tabs on top, the current page below.
 export default function AppLayout() {
   const { user, logout } = useAuth();
@@ -59,7 +73,9 @@ export default function AppLayout() {
       <div className="sticky top-0 z-10 shadow-sm">
         <header className="flex items-center justify-between bg-primary px-4 py-3 text-primary-foreground">
           <Link to={homePathFor(user.role)}>
-            <p className="font-bold">Brújula</p>
+            <p className="flex items-center gap-2 font-bold">
+              Brújula <LiveIndicator />
+            </p>
             <p className="text-sm opacity-90">
               {user.name} · {ROLE_LABELS[user.role]}
             </p>
@@ -79,6 +95,8 @@ export default function AppLayout() {
       <main className="p-4">
         <Outlet />
       </main>
+      <Toaster position="top-center" richColors closeButton />
+      <AssignmentNotifier />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import ErrorMessage from '@/components/ErrorMessage';
 import StatusFilter from '@/components/StatusFilter';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useActivityChanges } from '@/lib/liveUpdates';
 import { useApi } from '@/lib/useApi';
 
 // One list screen for every role; the API already returns only what each role may see.
@@ -20,7 +21,8 @@ export default function ActivitiesPage({
   const [status, setStatus] = useState(initialStatus);
   const query = new URLSearchParams(baseQuery);
   if (status) query.set('status', status);
-  const { data, error, loading } = useApi(`/activities?${query}`);
+  const { data, error, loading, reload } = useApi(`/activities?${query}`);
+  useActivityChanges(reload);
 
   return (
     <section className="flex flex-col gap-4">

@@ -5,12 +5,14 @@ import ErrorMessage from '@/components/ErrorMessage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useActivityChanges } from '@/lib/liveUpdates';
 import { useApi } from '@/lib/useApi';
 
 // A vehicle and its history of interventions, newest first.
 export default function VehicleDetailPage({ backPath, activitiesPath }) {
   const { id } = useParams();
-  const { data, error, loading } = useApi(`/vehicles/${id}`);
+  const { data, error, loading, reload } = useApi(`/vehicles/${id}`);
+  useActivityChanges(reload);
 
   if (loading && !data) return <Skeleton className="h-64 rounded-xl" />;
   if (error) return <ErrorMessage>{error.message}</ErrorMessage>;

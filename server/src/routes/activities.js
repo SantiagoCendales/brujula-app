@@ -29,6 +29,7 @@ import {
   TECHNICIAN_EDITABLE_STATUSES,
 } from '../domain/rules.js';
 import { HttpError } from '../lib/errors.js';
+import { notifyActivityChanged } from '../realtime/activityEvents.js';
 import { deletePhotoFile, detectImageType, savePhotoFile } from '../lib/photos.js';
 import { idSchema, validate } from '../lib/validation.js';
 
@@ -107,7 +108,7 @@ activitiesRouter.post('/', requireRole('client', 'coordinator', 'admin'), async 
     return id;
   });
 
-  res.status(201).json({ activity: await getActivityDetail(pool, activityId, user) });
+  await respondAfterChange(res, activityId, user, { status: 201 });
 });
 
 const assignSchema = z.object({ technician_id: z.number().int().positive() });
@@ -116,7 +117,7 @@ activitiesRouter.post('/:id/assign', requireRole('coordinator', 'admin'), async 
   const id = validate(idSchema, req.params.id);
   const { technician_id: technicianId } = validate(assignSchema, req.body);
 
-  await findVisibleActivity(pool, id, req.user);
+  const { technician_id: previousTechnicianId } = await findVisibleActivity(pool, id, req.user);
   await ensureActiveTechnician(pool, technicianId);
   await withTransaction((db) =>
     transition(db, {
@@ -130,7 +131,7 @@ activitiesRouter.post('/:id/assign', requireRole('coordinator', 'admin'), async 
     }),
   );
 
-  res.json({ activity: await getActivityDetail(pool, id, req.user) });
+  await respondAfterChange(res, id, req.user, { previousTechnicianId });
 });
 
 const coordinatesSchema = z.object({
@@ -139,8 +140,10 @@ const coordinatesSchema = z.object({
   accuracy_m: z.number().min(0).max(100_000).nullish(),
 });
 
-async function respondWithDetail(res, activityId, user, status = 200) {
-  res.status(status).json({ activity: await getActivityDetail(pool, activityId, user) });
+// Every mutation ends here: tell the live screens first, then answer with the updated activity.
+async function respondAfterChange(res, activityId, user, { status = 200, previousTechnicianId, extra } = {}) {
+  await notifyActivityChanged(pool, activityId, { previousTechnicianId });
+  res.status(status).json({ ...extra, activity: await getActivityDetail(pool, activityId, user) });
 }
 
 activitiesRouter.post('/:id/arrive', requireRole('technician'), async (req, res) => {
@@ -164,7 +167,7 @@ activitiesRouter.post('/:id/arrive', requireRole('technician'), async (req, res)
       },
     }),
   );
-  await respondWithDetail(res, id, req.user);
+  await respondAfterChange(res, id, req.user);
 });
 
 const reportSchema = z.object({ report: z.string().max(MAX_REPORT_LENGTH) });
@@ -187,7 +190,7 @@ activitiesRouter.patch('/:id/report', requireRole('technician'), async (req, res
       });
     }
   });
-  await respondWithDetail(res, id, req.user);
+  await respondAfterChange(res, id, req.user);
 });
 
 const upload = multer({
@@ -247,7 +250,7 @@ activitiesRouter.post(
         }
         return rows[0].id;
       });
-      res.status(201).json({ photo_id: photoId, activity: await getActivityDetail(pool, activity.id, req.user) });
+      await respondAfterChange(res, activity.id, req.user, { status: 201, extra: { photo_id: photoId } });
     } catch (error) {
       await deletePhotoFile(storageKey);
       throw error;
@@ -279,7 +282,7 @@ activitiesRouter.post('/:id/finish', requireRole('technician'), async (req, res)
       },
     });
   });
-  await respondWithDetail(res, id, req.user);
+  await respondAfterChange(res, id, req.user);
 });
 
 activitiesRouter.post('/:id/validate', requireRole('cec', 'admin'), async (req, res) => {
@@ -288,7 +291,7 @@ activitiesRouter.post('/:id/validate', requireRole('cec', 'admin'), async (req, 
   await withTransaction((db) =>
     transition(db, { activityId: id, userId: req.user.id, from: ['report_ready'], to: 'validated', type: 'validated' }),
   );
-  await respondWithDetail(res, id, req.user);
+  await respondAfterChange(res, id, req.user);
 });
 
 const returnSchema = z.object({ note: z.string().trim().min(3).max(MAX_RETURN_NOTE_LENGTH) });
@@ -309,7 +312,7 @@ activitiesRouter.post('/:id/return', requireRole('cec', 'admin'), async (req, re
       note,
     }),
   );
-  await respondWithDetail(res, id, req.user);
+  await respondAfterChange(res, id, req.user);
 });
 
 // No GPS here: corrections can be made away from the site. The original arrival and finish stay as evidence.
@@ -330,7 +333,7 @@ activitiesRouter.post('/:id/resubmit', requireRole('technician'), async (req, re
       changes: { technician_id: null },
     });
   });
-  await respondWithDetail(res, id, req.user);
+  await respondAfterChange(res, id, req.user);
 });
 
 activitiesRouter.post('/:id/deliver', requireRole('coordinator', 'admin'), async (req, res) => {
@@ -339,5 +342,5 @@ activitiesRouter.post('/:id/deliver', requireRole('coordinator', 'admin'), async
   await withTransaction((db) =>
     transition(db, { activityId: id, userId: req.user.id, from: ['validated'], to: 'delivered', type: 'delivered' }),
   );
-  await respondWithDetail(res, id, req.user);
+  await respondAfterChange(res, id, req.user);
 });

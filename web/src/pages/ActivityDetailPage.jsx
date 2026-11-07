@@ -1,5 +1,5 @@
 import { ChevronLeft } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useAuth } from '@/auth/AuthContext';
 import ErrorMessage from '@/components/ErrorMessage';
@@ -14,6 +14,7 @@ import TechnicianActions from '@/execution/TechnicianActions';
 import { apiUrl, request } from '@/lib/api';
 import { formatDateTime } from '@/lib/format';
 import { ACTIVITY_TYPE_LABELS, PHOTO_CATEGORY_LABELS } from '@/lib/labels';
+import { useActivityChanges } from '@/lib/liveUpdates';
 import { useApi } from '@/lib/useApi';
 
 const ASSIGNABLE_STATUSES = ['requested', 'assigned'];
@@ -101,7 +102,14 @@ function AssignForm({ activity, onAssigned }) {
 export default function ActivityDetailPage({ backPath }) {
   const { id } = useParams();
   const { user } = useAuth();
-  const { data, error, loading, setData } = useApi(`/activities/${id}`);
+  const { data, error, loading, setData, reload } = useApi(`/activities/${id}`);
+  const reloadIfThisActivity = useCallback(
+    (event) => {
+      if (event.activity_id === Number(id)) reload();
+    },
+    [id, reload],
+  );
+  useActivityChanges(reloadIfThisActivity);
 
   if (loading && !data) return <Skeleton className="h-64 rounded-xl" />;
   if (error) return <ErrorMessage>{error.message}</ErrorMessage>;
