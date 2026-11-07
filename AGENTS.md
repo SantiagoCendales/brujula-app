@@ -2,6 +2,8 @@
 
 Reglas del repo para cualquier persona o asistente de IA que trabaje en él. Cómo levantar el proyecto: `README.md`. Rutas, datos y permisos: `docs/api.md`.
 
+**Tareas del front: `docs/tasks.md`.** Es el lugar único de lo que le toca a Sebas (tareas, novedades que lo afectan y preguntas). Leerlo después de cada `git pull`. Quien cambie algo que afecte al front lo anota ahí en el mismo commit.
+
 ## Reglas que no se negocian
 
 - **Los permisos se revisan en el servidor.** Ocultar un botón en el front no protege nada.
