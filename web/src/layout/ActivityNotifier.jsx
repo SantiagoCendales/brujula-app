@@ -73,7 +73,8 @@ const RULES = [
 
 function NotificationToast({ Icon, title, activity, onView, onDismiss }) {
   return (
-    <div className="flex w-full items-start gap-3 rounded-2xl border bg-card p-4 text-card-foreground shadow-lg">
+    // Sonner gives custom toasts no width on wide screens, so the card takes Sonner's own --width (capped on phones).
+    <div className="flex w-(--width) max-w-full items-start gap-3 rounded-2xl border bg-card p-4 text-card-foreground shadow-lg">
       <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
         <Icon className="size-5" />
       </div>

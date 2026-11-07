@@ -99,8 +99,7 @@ export default function AppLayout() {
       <main className="p-4">
         <Outlet />
       </main>
-      {/* Offset clears the sticky header and tabs (~110 px) so notifications never cover the navigation. */}
-      <Toaster position="top-center" offset={{ top: 120 }} mobileOffset={{ top: 120, left: 12, right: 12 }} />
+      <Toaster position="top-center" offset={{ top: 16 }} mobileOffset={{ top: 12, left: 12, right: 12 }} />
       <ActivityNotifier />
     </div>
   );
