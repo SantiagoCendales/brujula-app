@@ -25,6 +25,15 @@ export function onUnauthorized(handler) {
   handleUnauthorized = handler;
 }
 
+export function reportUnauthorized() {
+  handleUnauthorized();
+}
+
+export function authHeaders() {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export async function request(path, { method = 'GET', body } = {}) {
   const token = getToken();
   const isFormData = body instanceof FormData;
