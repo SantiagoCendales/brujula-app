@@ -1,3 +1,4 @@
+import { CircleCheckBig, History, Wrench } from 'lucide-react';
 import { Navigate, Route, Routes } from 'react-router';
 import { useAuth } from './auth/AuthContext.jsx';
 import RequireAuth from './auth/RequireAuth.jsx';
@@ -10,6 +11,22 @@ import Login from './pages/Login.jsx';
 import NewActivityPage from './pages/NewActivityPage.jsx';
 import VehicleDetailPage from './pages/VehicleDetailPage.jsx';
 import VehiclesPage from './pages/VehiclesPage.jsx';
+
+const EMPTY_PENDING = {
+  icon: CircleCheckBig,
+  title: 'No tienes actividades pendientes',
+  description: 'Cuando te asignen una, te avisamos acá.',
+};
+const EMPTY_HISTORY = {
+  icon: History,
+  title: 'Todavía no terminaste actividades',
+  description: 'Las que cierres con «Terminé» quedan guardadas acá.',
+};
+const EMPTY_CLIENT = {
+  icon: Wrench,
+  title: 'Todavía no pediste servicios',
+  description: 'Solicita uno y sigue su avance en tiempo real.',
+};
 
 function RootRedirect() {
   const { user, checking } = useAuth();
@@ -61,6 +78,7 @@ export default function App() {
               baseQuery="view=pending"
               basePath="/technician/activities"
               showFilter={false}
+              empty={EMPTY_PENDING}
             />
           }
         />
@@ -72,6 +90,7 @@ export default function App() {
               baseQuery="view=history"
               basePath="/technician/activities"
               showFilter={false}
+              empty={EMPTY_HISTORY}
             />
           }
         />
@@ -97,6 +116,7 @@ export default function App() {
               basePath="/client/activities"
               newActivityPath="/client/new"
               newActivityLabel="+ Solicitar"
+              empty={EMPTY_CLIENT}
             />
           }
         />

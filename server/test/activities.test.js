@@ -224,6 +224,21 @@ describe('technician visibility', () => {
   });
 });
 
+describe('GET /api/activities/counts', () => {
+  test('counts per status only what each role can see', async () => {
+    const all = await get('/api/activities', tokens.coordinator);
+    const counts = await get('/api/activities/counts', tokens.coordinator);
+    assert.equal(counts.status, 200);
+    assert.equal(counts.body.total, all.body.activities.length);
+    for (const activity of all.body.activities) assert.ok(counts.body.counts[activity.status] > 0);
+
+    const ceibaList = await get('/api/activities', tokens.clientCeiba);
+    const ceibaCounts = await get('/api/activities/counts', tokens.clientCeiba);
+    assert.equal(ceibaCounts.body.total, ceibaList.body.activities.length, 'a client only counts its company');
+    assert.ok(ceibaCounts.body.total < counts.body.total);
+  });
+});
+
 describe('internal roles', () => {
   test('CEC sees every activity, including the audit log', async () => {
     const response = await get(`/api/activities/${ids.activities[2]}`, tokens.cec);

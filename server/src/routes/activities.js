@@ -4,7 +4,7 @@ import multer from 'multer';
 import { z } from 'zod';
 import { authenticate, requireRole } from '../auth/middleware.js';
 import { pool, withTransaction } from '../db/pool.js';
-import { vehicleScope } from '../domain/access.js';
+import { activityScope, vehicleScope } from '../domain/access.js';
 import {
   ensureActiveTechnician,
   ensureHolder,
@@ -47,6 +47,20 @@ const listQuerySchema = z.object({
 activitiesRouter.get('/', async (req, res) => {
   const filters = validate(listQuerySchema, req.query);
   res.json({ activities: await listActivities(pool, req.user, filters) });
+});
+
+// Activities per status for the list filters, within what the user may see. Registered before '/:id'.
+activitiesRouter.get('/counts', async (req, res) => {
+  const params = [];
+  const scope = activityScope(req.user, params);
+  const { rows } = await pool.query(
+    `select a.status, count(*)::int as total from activities a where ${scope} group by a.status`,
+    params,
+  );
+  const counts = Object.fromEntries(STATUSES.map((status) => [status, 0]));
+  for (const row of rows) counts[row.status] = row.total;
+  const total = rows.reduce((sum, row) => sum + row.total, 0);
+  res.json({ counts, total });
 });
 
 activitiesRouter.get('/:id', async (req, res) => {

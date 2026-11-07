@@ -1,7 +1,8 @@
-import { ChevronRight, Search } from 'lucide-react';
+import { Car, ChevronRight, Search, SearchX } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useAuth } from '@/auth/AuthContext';
+import EmptyState from '@/components/EmptyState';
 import ErrorMessage from '@/components/ErrorMessage';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -40,9 +41,12 @@ export default function VehiclesPage({ title, basePath }) {
 
       <ErrorMessage>{error?.message}</ErrorMessage>
       {loading && !data && <Skeleton className="h-20 rounded-xl" />}
-      {data?.vehicles.length === 0 && (
-        <p className="text-muted-foreground">{plate ? `No hay vehículos con "${plate}".` : 'No hay vehículos.'}</p>
-      )}
+      {data?.vehicles.length === 0 &&
+        (plate ? (
+          <EmptyState icon={SearchX} title={`No encontramos «${plate}»`} description="Revisa la placa o busca solo una parte." />
+        ) : (
+          <EmptyState icon={Car} title="No hay vehículos" description="Cuando se registre uno, aparece acá." />
+        ))}
 
       <ul className="flex flex-col gap-3">
         {data?.vehicles.map((vehicle) => (
