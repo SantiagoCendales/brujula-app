@@ -1,6 +1,32 @@
 import { useEffect, useState } from 'react';
+import ActivityCard from '@/components/ActivityCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { request } from '@/lib/api';
+
+const sampleActivities = [
+  {
+    id: 12,
+    status: 'on_site',
+    type: 'gps_install',
+    description: 'Instalar GPS y probar señal',
+    scheduled_for: '2026-11-07T14:00:00.000Z',
+    created_at: '2026-11-07T13:00:00.000Z',
+    company: { id: 1, name: 'Transportes Cóndor' },
+    vehicle: { id: 1, plate: 'DEMO-101', make: 'Toyota', model: 'Hilux' },
+    technician: { id: 3, name: 'Tomás Técnico' },
+  },
+  {
+    id: 13,
+    status: 'requested',
+    type: 'camera_install',
+    description: 'Instalar cámara de reversa y verificar imagen',
+    scheduled_for: null,
+    created_at: '2026-11-07T15:00:00.000Z',
+    company: { id: 1, name: 'Transportes Cóndor' },
+    vehicle: { id: 2, plate: 'DEMO-102', make: 'Toyota', model: 'Hilux' },
+    technician: null,
+  },
+];
 
 // API status screen (/status). Also the place to preview components while building them.
 export default function Home() {
@@ -29,6 +55,17 @@ export default function Home() {
           {health.ok === false && <p className="text-destructive">❌ {health.message}</p>}
         </CardContent>
       </Card>
+
+      <section className="space-y-3">
+        <h2 className="font-semibold">Tarjetas de actividad</h2>
+        <ul className="flex flex-col gap-3">
+          {sampleActivities.map((activity) => (
+            <li key={activity.id}>
+              <ActivityCard activity={activity} to={`/coordinator/activities/${activity.id}`} />
+            </li>
+          ))}
+        </ul>
+      </section>
     </main>
   );
 }
