@@ -132,6 +132,41 @@ test('a technician hears about a new activity assigned to them as soon as it is 
   ]);
 });
 
+test('admin and coordinator hear when a technician finishes a report', async () => {
+  tokens.admin ??= await loginAs(app, 'admin@brujula.test');
+  const created = await request(app)
+    .post('/api/activities')
+    .set(bearer(tokens.coordinator))
+    .send({ vehicle_id: ids.vehicles.condor2, type: 'maintenance', technician_id: ids.users.technician1 });
+  const id = created.body.activity.id;
+  await request(app).post(`/api/activities/${id}/arrive`).set(bearer(tokens.technician1)).send({ lat: 9.93, lng: -84.08 });
+  for (const category of ['plate', 'odometer', 'issue_found', 'issue_fixed']) {
+    await request(app)
+      .post(`/api/activities/${id}/photos`)
+      .set(bearer(tokens.technician1))
+      .field('category', category)
+      .attach('photo', Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(64, 1)]), 'photo.jpg');
+  }
+  await request(app).patch(`/api/activities/${id}/report`).set(bearer(tokens.technician1)).send({ report: 'Listo' });
+
+  const admin = await openStream(tokens.admin);
+  const coordinator = await openStream(tokens.coordinator);
+  await settle();
+  const finished = await request(app)
+    .post(`/api/activities/${id}/finish`)
+    .set(bearer(tokens.technician1))
+    .send({ lat: 9.93, lng: -84.08 });
+  assert.equal(finished.status, 200);
+  await settle();
+
+  for (const stream of [admin, coordinator]) {
+    assert.deepEqual(
+      stream.events.map((event) => [event.activity_id, event.change, event.status, event.actor_id]),
+      [[id, 'finished', 'report_ready', ids.users.technician1]],
+    );
+  }
+});
+
 test('the stream requires a valid session', async () => {
   const anonymous = await openStream('not-a-token');
   assert.equal(anonymous.status, 401);

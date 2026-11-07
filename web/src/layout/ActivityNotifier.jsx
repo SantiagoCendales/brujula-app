@@ -47,6 +47,18 @@ const RULES = [
     Icon: Inbox,
   },
   {
+    roles: ['coordinator'],
+    matches: (event) => event.change === 'finished',
+    title: (activity) => `${technicianName(activity, 'Un técnico')} envió el informe`,
+    Icon: FileCheck,
+  },
+  {
+    roles: ['coordinator'],
+    matches: (event) => event.change === 'resubmitted',
+    title: (activity) => `${technicianName(activity, 'Un técnico')} reenvió el informe corregido`,
+    Icon: FileCheck,
+  },
+  {
     roles: ['coordinator', 'admin'],
     matches: (event) => event.change === 'validated',
     title: 'Informe validado: listo para entregar',
