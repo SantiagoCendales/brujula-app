@@ -1,0 +1,23 @@
+# Dependencias
+node_modules/
+.venv/
+__pycache__/
+
+# Builds
+dist/
+build/
+.next/
+out/
+coverage/
+
+# Secretos
+.env
+.env.*
+!.env.example
+
+# Sistema / editores
+.DS_Store
+*.log
+.idea/
+.vscode/*
+!.vscode/extensions.json
