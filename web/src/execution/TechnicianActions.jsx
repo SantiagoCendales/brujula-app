@@ -2,11 +2,10 @@ import { CircleCheck, LoaderCircle, MapPin, Send, Undo2, X } from 'lucide-react'
 import { useRef, useState } from 'react';
 import ErrorMessage from '@/components/ErrorMessage';
 import PhotoChecklist from '@/components/PhotoChecklist';
+import ReportField from '@/components/ReportField';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { apiUrl, request } from '@/lib/api';
 import { compressImage, getLocation, isNativeApp, takeNativePhoto } from '@/lib/device';
 import { formatDateTime } from '@/lib/format';
@@ -168,7 +167,6 @@ function ReturnedNotice({ activity }) {
 }
 
 // On site it closes with "Terminé" (with GPS); after a return it resubmits to CEC (no GPS, the original stays).
-// TODO(T11): replace the inline textarea with Sebas's <ReportField />.
 function ReportAndFinishStep({ activity, onChange }) {
   const isCorrection = activity.status === 'returned';
   const [draft, setDraft] = useState(activity.report ?? '');
@@ -217,24 +215,7 @@ function ReportAndFinishStep({ activity, onChange }) {
     <>
       <Card>
         <CardContent className="flex flex-col gap-2">
-          <Label htmlFor="report" className="text-base">
-            Informe
-          </Label>
-          <Textarea
-            id="report"
-            rows={6}
-            maxLength={MAX_REPORT_LENGTH}
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            placeholder="¿Qué encontraste y qué hiciste?"
-            className="text-base"
-          />
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>
-              {draft.length} / {MAX_REPORT_LENGTH}
-            </span>
-            {isDirty && <span className="text-amber-700">Sin guardar</span>}
-          </div>
+          <ReportField value={draft} onChange={setDraft} maxLength={MAX_REPORT_LENGTH} dirty={isDirty} />
           <Button variant="outline" size="touch" onClick={handleSave} disabled={saving || !isDirty}>
             {saving ? 'Guardando…' : 'Guardar informe'}
           </Button>

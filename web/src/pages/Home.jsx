@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import ActivityCard from '@/components/ActivityCard';
 import EventTimeline from '@/components/EventTimeline';
 import PhotoChecklist from '@/components/PhotoChecklist';
+import ReportField from '@/components/ReportField';
 import StatusFilter from '@/components/StatusFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { request } from '@/lib/api';
@@ -72,6 +73,8 @@ const samplePhotoItems = Object.entries(PHOTO_CATEGORY_LABELS).map(([category, l
 export default function Home() {
   const [health, setHealth] = useState({ loading: true });
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [sampleReport, setSampleReport] = useState('');
+  const [sampleReportDirty, setSampleReportDirty] = useState(false);
 
   useEffect(() => {
     request('/health')
@@ -124,6 +127,18 @@ export default function Home() {
           items={samplePhotoItems}
           uploadingCategory={null}
           onCapture={(category) => console.log('Photo category:', category)}
+        />
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="font-semibold">Campo de informe</h2>
+        <ReportField
+          value={sampleReport}
+          onChange={(value) => {
+            setSampleReport(value);
+            setSampleReportDirty(true);
+          }}
+          dirty={sampleReportDirty}
         />
       </section>
     </main>
