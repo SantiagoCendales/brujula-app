@@ -14,9 +14,15 @@ export const MAX_PHOTOS_PER_ACTIVITY = 20;
 
 export const MAX_REPORT_LENGTH = 10_000;
 
-export const TECHNICIAN_PENDING_STATUSES = ['assigned', 'on_site'];
+export const MAX_RETURN_NOTE_LENGTH = 1000;
 
-export const TECHNICIAN_HISTORY_STATUSES = ['report_ready', 'validated', 'returned', 'delivered'];
+// Statuses in which the technician who holds the activity can edit the report and photos.
+// Edits while 'returned' are corrections and leave an audit event.
+export const TECHNICIAN_EDITABLE_STATUSES = ['on_site', 'returned'];
+
+export const TECHNICIAN_PENDING_STATUSES = ['assigned', 'on_site', 'returned'];
+
+export const TECHNICIAN_HISTORY_STATUSES = ['report_ready', 'validated', 'delivered'];
 
 // TODO(post-hackathon): only 'delivered' once the CEC validate/return flow is complete.
 export const CLIENT_REPORT_VISIBLE_STATUSES = ['report_ready', 'validated', 'delivered'];

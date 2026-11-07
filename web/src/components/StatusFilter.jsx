@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { STATUS_LABELS } from '@/lib/labels';
 
-const FILTER_STATUSES = Object.keys(STATUS_LABELS).filter((status) => status !== 'returned');
+const FILTER_STATUSES = Object.keys(STATUS_LABELS);
 
 export default function StatusFilter({ value, onChange }) {
   return (

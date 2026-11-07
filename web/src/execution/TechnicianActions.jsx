@@ -1,12 +1,14 @@
-import { Camera, CircleCheck, Circle, LoaderCircle, MapPin, Plus, X } from 'lucide-react';
+import { Camera, CircleCheck, Circle, LoaderCircle, MapPin, Plus, Send, Undo2, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import ErrorMessage from '@/components/ErrorMessage';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { apiUrl, request } from '@/lib/api';
 import { compressImage, getLocation, isNativeApp, takeNativePhoto } from '@/lib/device';
+import { formatDateTime } from '@/lib/format';
 import { PHOTO_CATEGORY_LABELS } from '@/lib/labels';
 import { MAX_REPORT_LENGTH, REQUIRED_PHOTOS } from '@/lib/rules';
 
@@ -155,8 +157,26 @@ function PhotosStep({ activity, onChange }) {
   );
 }
 
+function ReturnedNotice({ activity }) {
+  const lastReturn = activity.events.findLast((event) => event.type === 'returned');
+  return (
+    <Alert className="border-amber-300 bg-amber-50 text-amber-900">
+      <Undo2 />
+      <AlertTitle>El CEC devolvió el informe</AlertTitle>
+      <AlertDescription className="text-amber-900">
+        {lastReturn?.note}
+        <span className="mt-1 block text-xs opacity-80">
+          {lastReturn?.user.name} · {formatDateTime(lastReturn?.created_at)}
+        </span>
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+// On site it closes with "Terminé" (with GPS); after a return it resubmits to CEC (no GPS, the original stays).
 // TODO(T11): replace the inline textarea with Sebas's <ReportField />.
 function ReportAndFinishStep({ activity, onChange }) {
+  const isCorrection = activity.status === 'returned';
   const [draft, setDraft] = useState(activity.report ?? '');
   const [saving, setSaving] = useState(false);
   const [finishing, setFinishing] = useState(false);
@@ -189,8 +209,9 @@ function ReportAndFinishStep({ activity, onChange }) {
     setError('');
     try {
       if (isDirty) await saveReport();
-      const location = await getLocation();
-      const result = await request(`/activities/${activity.id}/finish`, { method: 'POST', body: location });
+      const result = isCorrection
+        ? await request(`/activities/${activity.id}/resubmit`, { method: 'POST' })
+        : await request(`/activities/${activity.id}/finish`, { method: 'POST', body: await getLocation() });
       onChange(result.activity);
     } catch (finishError) {
       setError(finishError.message);
@@ -228,10 +249,14 @@ function ReportAndFinishStep({ activity, onChange }) {
 
       <Card>
         <CardContent className="flex flex-col gap-3">
-          {missing.length > 0 && <p className="text-muted-foreground">Para terminar faltan: {missing.join(', ')}.</p>}
+          {missing.length > 0 && (
+            <p className="text-muted-foreground">
+              Para {isCorrection ? 'reenviar' : 'terminar'} faltan: {missing.join(', ')}.
+            </p>
+          )}
           <Button size="touch" onClick={handleFinish} disabled={missing.length > 0 || finishing}>
-            {finishing ? <LoaderCircle className="animate-spin" /> : <CircleCheck />}
-            {finishing ? 'Cerrando…' : 'Terminé'}
+            {finishing ? <LoaderCircle className="animate-spin" /> : isCorrection ? <Send /> : <CircleCheck />}
+            {finishing ? 'Enviando…' : isCorrection ? 'Reenviar al CEC' : 'Terminé'}
           </Button>
           <ErrorMessage>{error}</ErrorMessage>
         </CardContent>
@@ -243,9 +268,10 @@ function ReportAndFinishStep({ activity, onChange }) {
 // What the technician who holds the activity can do, depending on its status.
 export default function TechnicianActions({ activity, onChange }) {
   if (activity.status === 'assigned') return <ArriveStep activity={activity} onChange={onChange} />;
-  if (activity.status === 'on_site') {
+  if (activity.status === 'on_site' || activity.status === 'returned') {
     return (
       <>
+        {activity.status === 'returned' && <ReturnedNotice activity={activity} />}
         <PhotosStep activity={activity} onChange={onChange} />
         <ReportAndFinishStep activity={activity} onChange={onChange} />
       </>

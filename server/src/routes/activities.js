@@ -23,8 +23,10 @@ import {
   MAX_PHOTO_BYTES,
   MAX_PHOTOS_PER_ACTIVITY,
   MAX_REPORT_LENGTH,
+  MAX_RETURN_NOTE_LENGTH,
   PHOTO_CATEGORIES,
   STATUSES,
+  TECHNICIAN_EDITABLE_STATUSES,
 } from '../domain/rules.js';
 import { HttpError } from '../lib/errors.js';
 import { deletePhotoFile, detectImageType, savePhotoFile } from '../lib/photos.js';
@@ -174,8 +176,16 @@ activitiesRouter.patch('/:id/report', requireRole('technician'), async (req, res
 
   await withTransaction(async (db) => {
     const activity = await lockActivity(db, id);
-    if (activity.status !== 'on_site') throw invalidStatus(activity.status);
+    if (!TECHNICIAN_EDITABLE_STATUSES.includes(activity.status)) throw invalidStatus(activity.status);
     await db.query('update activities set report = $2, updated_at = now() where id = $1', [id, report]);
+    if (activity.status === 'returned' && activity.report !== report) {
+      await recordEvent(db, {
+        activityId: id,
+        userId: req.user.id,
+        type: 'correction',
+        data: { field: 'report', before: activity.report, after: report },
+      });
+    }
   });
   await respondWithDetail(res, id, req.user);
 });
@@ -190,7 +200,7 @@ async function loadActivityForUpload(req, _res, next) {
   const id = validate(idSchema, req.params.id);
   const activity = await findVisibleActivity(pool, id, req.user);
   ensureHolder(activity, req.user);
-  if (activity.status !== 'on_site') throw invalidStatus(activity.status);
+  if (!TECHNICIAN_EDITABLE_STATUSES.includes(activity.status)) throw invalidStatus(activity.status);
   req.activity = activity;
   next();
 }
@@ -217,7 +227,7 @@ activitiesRouter.post(
     try {
       const photoId = await withTransaction(async (db) => {
         const locked = await lockActivity(db, activity.id);
-        if (locked.status !== 'on_site') throw invalidStatus(locked.status);
+        if (!TECHNICIAN_EDITABLE_STATUSES.includes(locked.status)) throw invalidStatus(locked.status);
         const { rows: counts } = await db.query('select count(*)::int as total from photos where activity_id = $1', [activity.id]);
         if (counts[0].total >= MAX_PHOTOS_PER_ACTIVITY) {
           throw new HttpError(409, 'too_many_photos', `Máximo ${MAX_PHOTOS_PER_ACTIVITY} fotos por actividad`);
@@ -227,6 +237,14 @@ activitiesRouter.post(
            values ($1, $2, $3, $4, $5, $6) returning id`,
           [activity.id, category, storageKey, imageType.mimeType, req.file.size, req.user.id],
         );
+        if (locked.status === 'returned') {
+          await recordEvent(db, {
+            activityId: activity.id,
+            userId: req.user.id,
+            type: 'photo_added',
+            data: { photo_id: rows[0].id, category },
+          });
+        }
         return rows[0].id;
       });
       res.status(201).json({ photo_id: photoId, activity: await getActivityDetail(pool, activity.id, req.user) });
@@ -270,6 +288,48 @@ activitiesRouter.post('/:id/validate', requireRole('cec', 'admin'), async (req, 
   await withTransaction((db) =>
     transition(db, { activityId: id, userId: req.user.id, from: ['report_ready'], to: 'validated', type: 'validated' }),
   );
+  await respondWithDetail(res, id, req.user);
+});
+
+const returnSchema = z.object({ note: z.string().trim().min(3).max(MAX_RETURN_NOTE_LENGTH) });
+
+// CEC sends the report back to the technician who performed it, with a note saying what to fix.
+activitiesRouter.post('/:id/return', requireRole('cec', 'admin'), async (req, res) => {
+  const id = validate(idSchema, req.params.id);
+  const { note } = validate(returnSchema, req.body);
+  const activity = await findVisibleActivity(pool, id, req.user);
+  await withTransaction((db) =>
+    transition(db, {
+      activityId: id,
+      userId: req.user.id,
+      from: ['report_ready'],
+      to: 'returned',
+      type: 'returned',
+      changes: { technician_id: activity.performed_by },
+      note,
+    }),
+  );
+  await respondWithDetail(res, id, req.user);
+});
+
+// No GPS here: corrections can be made away from the site. The original arrival and finish stay as evidence.
+activitiesRouter.post('/:id/resubmit', requireRole('technician'), async (req, res) => {
+  const id = validate(idSchema, req.params.id);
+  ensureHolder(await findVisibleActivity(pool, id, req.user), req.user);
+
+  await withTransaction(async (db) => {
+    const activity = await lockActivity(db, id);
+    if (activity.status !== 'returned') throw invalidStatus(activity.status);
+    await ensureReportComplete(db, activity);
+    await transition(db, {
+      activityId: id,
+      userId: req.user.id,
+      from: ['returned'],
+      to: 'report_ready',
+      type: 'resubmitted',
+      changes: { technician_id: null },
+    });
+  });
   await respondWithDetail(res, id, req.user);
 });
 

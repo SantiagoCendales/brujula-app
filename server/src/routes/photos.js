@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate, requireRole } from '../auth/middleware.js';
 import { pool, withTransaction } from '../db/pool.js';
 import { ensureHolder, findVisibleActivity, getActivityDetail, invalidStatus, lockActivity, recordEvent } from '../domain/activities.js';
+import { TECHNICIAN_EDITABLE_STATUSES } from '../domain/rules.js';
 import { HttpError } from '../lib/errors.js';
 import { absolutePhotoPath, deletePhotoFile, isValidPhotoSignature } from '../lib/photos.js';
 import { idSchema, validate } from '../lib/validation.js';
@@ -37,13 +38,13 @@ photosRouter.delete('/:id', authenticate, requireRole('technician'), async (req,
 
   const activity = await findVisibleActivity(pool, photo.activity_id, req.user);
   ensureHolder(activity, req.user);
-  if (activity.status !== 'on_site') throw invalidStatus(activity.status);
+  if (!TECHNICIAN_EDITABLE_STATUSES.includes(activity.status)) throw invalidStatus(activity.status);
 
   // File first, then the row: if deleting the file fails, the row stays so it can be retried.
   await deletePhotoFile(photo.storage_key);
   await withTransaction(async (db) => {
     const locked = await lockActivity(db, activity.id);
-    if (locked.status !== 'on_site') throw invalidStatus(locked.status);
+    if (!TECHNICIAN_EDITABLE_STATUSES.includes(locked.status)) throw invalidStatus(locked.status);
     await db.query('delete from photos where id = $1', [id]);
     await recordEvent(db, {
       activityId: activity.id,

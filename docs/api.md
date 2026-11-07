@@ -59,7 +59,7 @@ Lo que no te corresponde responde **404 y no 403**, para que nadie pueda averigu
 | `on_site` | En sitio |
 | `report_ready` | Informe listo |
 | `validated` | Validada |
-| `returned` | Devuelta (fuera del MVP) |
+| `returned` | Devuelta (el CEC la devolvió al técnico para corregir) |
 | `delivered` | Entregada al cliente |
 
 | Acción | De → A | Quién | Requisitos y efectos |
@@ -69,11 +69,14 @@ Lo que no te corresponde responde **404 y no 403**, para que nadie pueda averigu
 | Llegué | `assigned` → `on_site` | técnico que la tiene | GPS. La hora la pone el servidor. Guarda `performed_by` |
 | Terminé | `on_site` → `report_ready` | técnico que la tiene | GPS, informe no vacío y las 4 fotos obligatorias. Vacía `technician_id` |
 | Validar | `report_ready` → `validated` | cec | — |
+| Devolver | `report_ready` → `returned` | cec | Nota obligatoria. Vuelve al técnico que la ejecutó (`technician_id` = `performed_by`) |
+| Corregir | (sigue en `returned`) | técnico que la tiene | Editar el informe o las fotos. Cada cambio deja un evento (`correction`, `photo_added`, `photo_deleted`) |
+| Reenviar | `returned` → `report_ready` | técnico que la tiene | Mismos requisitos que Terminé, pero sin GPS: la llegada y el fin originales quedan como evidencia. Vacía `technician_id` |
 | Entregar | `validated` → `delivered` | coordinator | — |
 
 Cada cambio de estado deja un **evento** con quién, cuándo, de qué estado a cuál y datos extra. Los eventos no se editan ni se borran.
 
-Fuera del MVP: `returned` (el CEC devuelve con una nota y vuelve al técnico que la ejecutó) y las correcciones después de `report_ready`.
+Ruta alterna: `report_ready` → `returned` → `report_ready` (se puede repetir hasta que el CEC valide). Mientras está `returned`, el cliente no ve el informe.
 
 ## Rutas
 
@@ -154,11 +157,15 @@ Las acciones del técnico (Llegué, informe, fotos, Terminé) solo las puede hac
 | POST | `/activities/:id/photos` | técnico que la tiene, en `on_site` | `multipart/form-data`: `photo` (archivo) + `category` | `201 { photo_id, activity }` |
 | POST | `/activities/:id/finish` | técnico que la tiene | `{ lat, lng, accuracy_m? }` | `{ activity }` o `422` |
 | POST | `/activities/:id/validate` | cec | — | `{ activity }` |
+| POST | `/activities/:id/return` | cec | `{ note }` (3 a 1.000 caracteres) | `{ activity }` |
+| POST | `/activities/:id/resubmit` | técnico que la tiene, en `returned` | — | `{ activity }` o `422` |
 | POST | `/activities/:id/deliver` | coordinator | — | `{ activity }` |
 
 **Vistas del técnico (`view`):**
-- `pending`: las que tiene ahora (`assigned`, `on_site`).
-- `history`: las que ejecutó, de `report_ready` en adelante.
+- `pending`: las que tiene ahora (`assigned`, `on_site`, `returned`).
+- `history`: las que ejecutó y ya entregó (`report_ready`, `validated`, `delivered`).
+
+El informe y las fotos se pueden editar en `on_site` y en `returned`. La nota de una devolución está en el evento `returned` (`events[].note`).
 
 Las acciones devuelven la actividad completa ya actualizada: el front reemplaza lo que tiene, sin volver a pedirla.
 

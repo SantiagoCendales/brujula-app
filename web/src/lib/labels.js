@@ -27,10 +27,18 @@ export const ACTIVITY_TYPE_LABELS = {
   uninstall: 'Desinstalación',
 };
 
-// Events that do not change the status (status changes use STATUS_LABELS of `to_status`).
+// Events whose label says more than the status they lead to. Any other event uses STATUS_LABELS of `to_status`.
 export const EVENT_TYPE_LABELS = {
+  returned: 'Devuelta por el CEC',
+  resubmitted: 'Reenviada al CEC',
+  correction: 'Informe corregido',
+  photo_added: 'Foto agregada',
   photo_deleted: 'Foto eliminada',
 };
+
+export function eventLabel(event) {
+  return EVENT_TYPE_LABELS[event.type] ?? STATUS_LABELS[event.to_status] ?? event.type;
+}
 
 export const PHOTO_CATEGORY_LABELS = {
   plate: 'Frente con placa',

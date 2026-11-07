@@ -10,6 +10,9 @@ Lugar único de las tareas de Sebas. Se actualiza en el mismo commit que el cód
 
 ## 📣 Novedades que afectan al front
 
+- **[devolver]** Nuevo flujo: el CEC puede **devolver** un informe con una nota; vuelve al técnico en estado "Devuelta", él corrige y lo **reenvía**. Pantallas en `execution/ReviewActions.jsx` (CEC) y `execution/TechnicianActions.jsx` (técnico).
+- **[devolver]** Agregué `returned` a tu `StatusFilter` (antes lo excluía porque estaba fuera del MVP; ahora es un estado real).
+- **[devolver]** Para el texto de un evento usar `eventLabel(event)` de `web/src/lib/labels.js`. Los eventos pueden traer `note` (la nota de la devolución). Ya se la sumé a tu `EventTimeline` (T8), junto con `eventLabel`.
 - **[vehículos]** Nueva pestaña **Vehículos** (coordinador, CEC y cliente) con búsqueda por placa y el historial de cada vehículo: `pages/VehiclesPage.jsx` y `pages/VehicleDetailPage.jsx`. El historial usa tu `ActivityCard`.
 - **[vehículos]** La navegación ahora son pestañas debajo del encabezado, definidas por rol en `layout/AppLayout.jsx` (`TABS`). Por eso `ActivitiesPage` ya no tiene el link secundario `secondaryLink`.
 - **[bloque 4]** La app ya se empaqueta para Android con Capacitor (`web/android/`). No cambia nada en cómo se escriben las pantallas: el mismo código corre en el navegador y en el APK. Lo único: **cámara y GPS siempre por `web/src/lib/device.js`**, porque ahí se decide si se usa el navegador o el celular nativo.

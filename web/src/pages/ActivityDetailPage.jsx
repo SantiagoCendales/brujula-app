@@ -13,7 +13,7 @@ import ReviewActions from '@/execution/ReviewActions';
 import TechnicianActions from '@/execution/TechnicianActions';
 import { apiUrl, request } from '@/lib/api';
 import { formatDateTime } from '@/lib/format';
-import { ACTIVITY_TYPE_LABELS, PHOTO_CATEGORY_LABELS, STATUS_LABELS } from '@/lib/labels';
+import { ACTIVITY_TYPE_LABELS, PHOTO_CATEGORY_LABELS } from '@/lib/labels';
 import { useApi } from '@/lib/useApi';
 
 const ASSIGNABLE_STATUSES = ['requested', 'assigned'];
@@ -110,7 +110,7 @@ export default function ActivityDetailPage({ backPath }) {
   const setActivity = (updated) => setData({ activity: updated });
   const canAssign = ['coordinator', 'admin'].includes(user.role) && ASSIGNABLE_STATUSES.includes(activity.status);
   const isHolder = user.role === 'technician' && activity.technician?.id === user.id;
-  const isCapturing = isHolder && activity.status === 'on_site';
+  const isCapturing = isHolder && ['on_site', 'returned'].includes(activity.status);
 
   return (
     <section className="flex flex-col gap-4">
