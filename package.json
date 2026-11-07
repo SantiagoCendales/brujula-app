@@ -1,0 +1,19 @@
+{
+  "name": "brujula-app",
+  "private": true,
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev:server": "npm run dev -w server",
+    "dev:web": "npm run dev -w web",
+    "db:migrate": "npm run migrate -w server",
+    "db:seed": "npm run seed -w server",
+    "test": "npm test -w server",
+    "build": "npm run build -w web"
+  }
+}

@@ -1,0 +1,13 @@
+# Mac and Windows share this repo: LF everywhere so git does not flag files as changed.
+* text=auto eol=lf
+
+# Windows scripts (e.g. Android's gradlew.bat) need CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.jar binary
