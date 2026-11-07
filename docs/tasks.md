@@ -19,24 +19,6 @@ Lugar único de las tareas de Sebas. Se actualiza en el mismo commit que el cód
 
 Bloque 1. Todos van en `web/src/components/`. Son de presentación: reciben datos por props y **no llaman a la API** (Santiago los conecta).
 
-### T1 · `Button.jsx`
-- Props: `children`, `variant` (`'primary' | 'secondary' | 'danger'`, por defecto `'primary'`), `type` (por defecto `'button'`), `disabled`, `loading`, `onClick`.
-- Ancho completo y alto cómodo para el dedo (`w-full py-3 rounded-xl font-semibold`). Primary con `bg-brand text-white`, secondary con borde, danger en rojo.
-- Con `loading` muestra "Cargando…" y queda desactivado.
-- **Terminado cuando:** las tres variantes y el estado `loading` se ven en `/status`.
-
-### T2 · `Card.jsx`
-- Props: `children` y un `onClick` opcional.
-- Fondo blanco, bordes redondeados y sombra suave (`rounded-2xl bg-white p-4 shadow-sm`).
-- Con `onClick` se comporta como botón: es un `<button>` con `text-left w-full`, cursor de mano y un efecto al tocar (`active:scale-[0.99]`).
-- **Terminado cuando:** se ve una tarjeta normal y una tocable en `/status`.
-
-### T3 · `StatusBadge.jsx`
-- Prop: `status` (`requested`, `assigned`, `on_site`, `report_ready`, `validated`, `returned`, `delivered`).
-- Muestra `STATUS_LABELS[status]` de `web/src/lib/labels.js` como una píldora (`rounded-full px-3 py-1 text-sm font-medium`).
-- Un color por estado en un objeto dentro del archivo. Sugerencia: solicitada gris, asignada azul, en sitio ámbar, informe listo violeta, validada verde, devuelta rojo, entregada verde oscuro.
-- **Terminado cuando:** los 7 estados se ven en `/status` con su etiqueta y color.
-
 ### T4 · `Header.jsx`
 - Props: `userName`, `roleLabel`, `onLogout`.
 - Barra superior `bg-brand text-white`: "Brújula" y debajo `userName · roleLabel` a la izquierda; botón "Salir" a la derecha que llama a `onLogout`.
@@ -51,11 +33,27 @@ Bloque 1. Todos van en `web/src/components/`. Son de presentación: reciben dato
 
 ## 🔄 En curso
 
-_(nada)_
+### T1 · `Button.jsx`
+- Props: `children`, `variant` (`'primary' | 'secondary' | 'danger'`, por defecto `'primary'`), `type` (por defecto `'button'`), `disabled`, `loading`, `onClick`.
+- Ancho completo y alto cómodo para el dedo (`w-full py-3 rounded-xl font-semibold`). Primary con `bg-brand text-white`, secondary con borde, danger en rojo.
+- Con `loading` muestra "Cargando…" y queda desactivado.
+- **Terminado cuando:** las tres variantes y el estado `loading` se ven en `/status` y se prueban en el navegador.
+
+### T2 · `Card.jsx`
+- Props: `children` y un `onClick` opcional.
+- Fondo blanco, bordes redondeados y sombra suave (`rounded-2xl bg-white p-4 shadow-sm`).
+- Con `onClick` se comporta como botón: es un `<button>` con `text-left w-full`, cursor de mano y un efecto al tocar (`active:scale-[0.99]`).
+- **Terminado cuando:** se ve una tarjeta normal y una tocable en `/status` y se prueban en el navegador.
 
 ## ✅ Hechas
 
 - **T0 · Setup:** clonar, instalar y conectar el front a la API por ngrok.
+
+### T3 · `StatusBadge.jsx`
+- Prop: `status` (`requested`, `assigned`, `on_site`, `report_ready`, `validated`, `returned`, `delivered`).
+- Muestra `STATUS_LABELS[status]` de `web/src/lib/labels.js` como una píldora (`rounded-full px-3 py-1 text-sm font-medium`).
+- Un color por estado en un objeto dentro del archivo. Sugerencia: solicitada gris, asignada azul, en sitio ámbar, informe listo violeta, validada verde, devuelta rojo, entregada verde oscuro.
+- **Terminado cuando:** los 7 estados se ven en `/status` con su etiqueta y color; probado en viewport móvil, sin errores en consola y publicado.
 
 ## ❓ Preguntas
 

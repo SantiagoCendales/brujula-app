@@ -1,6 +1,6 @@
 const variantClasses = {
 	primary: 'bg-brand text-white hover:bg-brand-dark',
-	secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200',
+	secondary: 'border border-slate-300 bg-white text-slate-900 hover:bg-slate-50',
 	danger: 'bg-red-600 text-white hover:bg-red-700',
 };
 
