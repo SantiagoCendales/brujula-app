@@ -2,9 +2,11 @@ import express from 'express';
 import helmet from 'helmet';
 import { pool } from './db/pool.js';
 import { errorHandler, HttpError } from './lib/errors.js';
+import { activitiesRouter } from './routes/activities.js';
 import { authRouter } from './routes/auth.js';
 import { catalogsRouter } from './routes/catalogs.js';
 import { companiesRouter } from './routes/companies.js';
+import { photosRouter } from './routes/photos.js';
 import { usersRouter } from './routes/users.js';
 import { vehiclesRouter } from './routes/vehicles.js';
 
@@ -27,6 +29,8 @@ export function createApp() {
   app.use('/api/companies', companiesRouter);
   app.use('/api/users', usersRouter);
   app.use('/api/vehicles', vehiclesRouter);
+  app.use('/api/activities', activitiesRouter);
+  app.use('/api/photos', photosRouter);
 
   app.use('/api', () => {
     throw new HttpError(404, 'not_found', 'Ruta no encontrada');

@@ -8,7 +8,7 @@ export default function RequireAuth({ roles, children }) {
   const location = useLocation();
 
   if (checking) {
-    return <p className="p-6 text-center text-slate-500">Cargando…</p>;
+    return <p className="p-6 text-center text-muted-foreground">Cargando…</p>;
   }
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;

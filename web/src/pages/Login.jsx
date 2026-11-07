@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
-import { useAuth } from '../auth/AuthContext.jsx';
-import { homePathFor } from '../auth/roles.js';
+import { useAuth } from '@/auth/AuthContext';
+import { homePathFor } from '@/auth/roles';
+import ErrorMessage from '@/components/ErrorMessage';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const DEMO_EMAILS = [
   'coordinador@brujula.test',
@@ -34,49 +39,50 @@ export default function Login() {
     }
   }
 
-  // TODO(block 1): replace this inline form with Sebas's <LoginForm onSubmit loading error /> once it lands.
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 p-6">
       <header className="text-center">
-        <h1 className="text-4xl font-bold text-brand">Brújula</h1>
-        <p className="mt-2 text-slate-600">Coordinación y evidencia de servicios técnicos</p>
+        <h1 className="text-4xl font-bold text-primary">Brújula</h1>
+        <p className="mt-2 text-muted-foreground">Coordinación y evidencia de servicios técnicos</p>
       </header>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm">
-        <label className="flex flex-col gap-1 text-sm font-medium">
-          Correo
-          <input
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            className="rounded-xl border border-slate-300 px-4 py-3 text-base"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm font-medium">
-          Contraseña
-          <input
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            className="rounded-xl border border-slate-300 px-4 py-3 text-base"
-          />
-        </label>
-        {error && <p className="text-sm text-red-700">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-xl bg-brand py-3 font-semibold text-white disabled:opacity-60"
-        >
-          {loading ? 'Entrando…' : 'Entrar'}
-        </button>
-      </form>
+      <Card>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="email">Correo</Label>
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                className="h-12 text-base"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="password">Contraseña</Label>
+              <Input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                className="h-12 text-base"
+              />
+            </div>
+            <ErrorMessage>{error}</ErrorMessage>
+            <Button type="submit" size="touch" disabled={loading}>
+              {loading ? 'Entrando…' : 'Entrar'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
       {import.meta.env.DEV && (
-        <section className="text-center text-xs text-slate-500">
+        <section className="text-center text-xs text-muted-foreground">
           <p>Usuarios de demo (contraseña brujula123):</p>
           <ul className="mt-1">
             {DEMO_EMAILS.map((demoEmail) => (

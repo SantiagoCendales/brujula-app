@@ -8,6 +8,12 @@ export const PHOTO_CATEGORIES = ['plate', 'odometer', 'issue_found', 'issue_fixe
 
 export const REQUIRED_PHOTOS = ['plate', 'odometer', 'issue_found', 'issue_fixed'];
 
+export const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
+
+export const MAX_PHOTOS_PER_ACTIVITY = 20;
+
+export const MAX_REPORT_LENGTH = 10_000;
+
 export const TECHNICIAN_PENDING_STATUSES = ['assigned', 'on_site'];
 
 export const TECHNICIAN_HISTORY_STATUSES = ['report_ready', 'validated', 'returned', 'delivered'];

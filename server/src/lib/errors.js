@@ -24,6 +24,11 @@ export function errorHandler(error, _req, res, _next) {
   if (error instanceof HttpError) {
     return respond(res, error.status, error.code, error.message, error.details);
   }
+  if (error.name === 'MulterError') {
+    return error.code === 'LIMIT_FILE_SIZE'
+      ? respond(res, 413, 'file_too_large', 'La foto supera el tamaño máximo de 8 MB')
+      : respond(res, 400, 'validation_error', 'El archivo enviado no es válido');
+  }
   if (error.type === 'entity.parse.failed') {
     return respond(res, 400, 'validation_error', 'El cuerpo de la petición no es JSON válido');
   }
