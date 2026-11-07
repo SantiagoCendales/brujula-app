@@ -139,9 +139,9 @@ El token dura 12 horas.
 
 La placa se guarda en mayúsculas y es única.
 
-### Actividades (en parte ✅)
+### Actividades ✅
 
-Ya funcionan: listar, ver detalle, crear y asignar. Llegué, informe, fotos, Terminé, validar y entregar siguen 🔜.
+Las acciones del técnico (Llegué, informe, fotos, Terminé) solo las puede hacer **el técnico que tiene la actividad ahora**. Otro técnico que la ve por historial recibe `403 forbidden`.
 
 | Método | Ruta | Quién | Recibe | Devuelve |
 |---|---|---|---|---|
@@ -151,7 +151,7 @@ Ya funcionan: listar, ver detalle, crear y asignar. Llegué, informe, fotos, Ter
 | POST | `/activities/:id/assign` | coordinator | `{ technician_id }` | `{ activity }` |
 | POST | `/activities/:id/arrive` | técnico que la tiene | `{ lat, lng, accuracy_m? }` | `{ activity }` |
 | PATCH | `/activities/:id/report` | técnico que la tiene, en `on_site` | `{ report }` (hasta 10.000 caracteres) | `{ activity }` |
-| POST | `/activities/:id/photos` | técnico que la tiene, en `on_site` | `multipart/form-data`: `photo` (archivo) + `category` | `201 { photo }` |
+| POST | `/activities/:id/photos` | técnico que la tiene, en `on_site` | `multipart/form-data`: `photo` (archivo) + `category` | `201 { photo_id, activity }` |
 | POST | `/activities/:id/finish` | técnico que la tiene | `{ lat, lng, accuracy_m? }` | `{ activity }` o `422` |
 | POST | `/activities/:id/validate` | cec | — | `{ activity }` |
 | POST | `/activities/:id/deliver` | coordinator | — | `{ activity }` |
@@ -202,12 +202,12 @@ Si "Terminé" falla porque falta algo:
   "details": { "missing_photos": ["odometer"], "missing_report": false } } }
 ```
 
-### Fotos 🔜
+### Fotos ✅
 
 | Método | Ruta | Quién | Notas |
 |---|---|---|---|
 | GET | `/photos/:id/file?exp=&sig=` | quien tenga la URL | Devuelve la imagen. Sin header de autenticación |
-| DELETE | `/photos/:id` | técnico que tiene la actividad, en `on_site` | Primero borra el archivo y después la fila |
+| DELETE | `/photos/:id` | técnico que tiene la actividad, en `on_site` | Primero borra el archivo y después la fila. Deja un evento `photo_deleted`. Devuelve `{ activity }` |
 
 **URLs firmadas:** un `<img src>` no puede mandar el header `Authorization`. El servidor revisa los permisos al armar el detalle y devuelve una URL firmada que vence en 1 o 2 horas; el front la pone directo en el `<img>`. Una URL vencida o modificada responde `403`.
 

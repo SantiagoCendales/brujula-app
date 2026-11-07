@@ -9,6 +9,8 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss()],
     server: {
       port: 5173,
+      // Lets the dev server be opened through an ngrok tunnel (HTTPS, needed for camera and GPS on a phone).
+      allowedHosts: ['.ngrok-free.app'],
       // In development, /api calls are proxied to the Express server.
       // To use the API running on another computer, set API_PROXY_TARGET in web/.env.local (see .env.example).
       proxy: {

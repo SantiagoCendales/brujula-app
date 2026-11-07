@@ -1,8 +1,7 @@
-import { unlink } from 'node:fs/promises';
-import path from 'node:path';
 import bcrypt from 'bcryptjs';
 import { config } from '../config.js';
 import { isMainModule } from '../lib/isMainModule.js';
+import { deletePhotoFile } from '../lib/photos.js';
 import { pool, withTransaction } from './pool.js';
 
 // All data is made up (hackathon rule): no real plates, names or clients.
@@ -35,11 +34,7 @@ const ACTIVITIES = [
 async function deletePhotoFiles(db) {
   const { rows } = await db.query('select storage_key from photos');
   for (const { storage_key: storageKey } of rows) {
-    try {
-      await unlink(path.join(config.uploadsDir, storageKey));
-    } catch (error) {
-      if (error.code !== 'ENOENT') throw error;
-    }
+    await deletePhotoFile(storageKey);
   }
 }
 

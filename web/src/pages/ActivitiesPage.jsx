@@ -8,8 +8,17 @@ const FILTER_STATUSES = ['requested', 'assigned', 'on_site', 'report_ready', 'va
 
 // One list screen for every role; the API already returns only what each role may see.
 // TODO(T6, T7): replace the inline card and filter chips with Sebas's <ActivityCard /> and <StatusFilter />.
-export default function ActivitiesPage({ title, baseQuery = '', basePath, newActivityPath, newActivityLabel, showFilter = true }) {
-  const [status, setStatus] = useState('');
+export default function ActivitiesPage({
+  title,
+  baseQuery = '',
+  basePath,
+  newActivityPath,
+  newActivityLabel,
+  showFilter = true,
+  initialStatus = '',
+  secondaryLink,
+}) {
+  const [status, setStatus] = useState(initialStatus);
   const query = new URLSearchParams(baseQuery);
   if (status) query.set('status', status);
   const { data, error, loading } = useApi(`/activities?${query}`);
@@ -21,6 +30,11 @@ export default function ActivitiesPage({ title, baseQuery = '', basePath, newAct
         {newActivityPath && (
           <Link to={newActivityPath} className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white">
             {newActivityLabel}
+          </Link>
+        )}
+        {secondaryLink && (
+          <Link to={secondaryLink.to} className="text-sm font-medium text-brand underline">
+            {secondaryLink.label}
           </Link>
         )}
       </div>

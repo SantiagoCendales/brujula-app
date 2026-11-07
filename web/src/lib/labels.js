@@ -27,6 +27,11 @@ export const ACTIVITY_TYPE_LABELS = {
   uninstall: 'Desinstalación',
 };
 
+// Events that do not change the status (status changes use STATUS_LABELS of `to_status`).
+export const EVENT_TYPE_LABELS = {
+  photo_deleted: 'Foto eliminada',
+};
+
 export const PHOTO_CATEGORY_LABELS = {
   plate: 'Frente con placa',
   odometer: 'Kilometraje',

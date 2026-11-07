@@ -49,14 +49,32 @@ export default function App() {
         <Route
           index
           element={
-            <ActivitiesPage title="Mis pendientes" baseQuery="view=pending" basePath="/technician/activities" showFilter={false} />
+            <ActivitiesPage
+              title="Mis pendientes"
+              baseQuery="view=pending"
+              basePath="/technician/activities"
+              showFilter={false}
+              secondaryLink={{ to: '/technician/history', label: 'Mi historial' }}
+            />
+          }
+        />
+        <Route
+          path="history"
+          element={
+            <ActivitiesPage
+              title="Mi historial"
+              baseQuery="view=history"
+              basePath="/technician/activities"
+              showFilter={false}
+              secondaryLink={{ to: '/technician', label: 'Mis pendientes' }}
+            />
           }
         />
         <Route path="activities/:id" element={<ActivityDetailPage backPath="/technician" />} />
       </Route>
 
       <Route path="/cec" element={roleSection(['cec', 'admin'])}>
-        <Route index element={<ActivitiesPage title="Actividades" basePath="/cec/activities" />} />
+        <Route index element={<ActivitiesPage title="Actividades" basePath="/cec/activities" initialStatus="report_ready" />} />
         <Route path="activities/:id" element={<ActivityDetailPage backPath="/cec" />} />
       </Route>
 

@@ -10,6 +10,10 @@ Lugar único de las tareas de Sebas. Se actualiza en el mismo commit que el cód
 
 ## 📣 Novedades que afectan al front
 
+- **[bloque 3]** Ya funciona toda la API del MVP: Llegué, informe, fotos, Terminé, validar y entregar (`docs/api.md`, todo con ✅).
+- **[bloque 3]** La pantalla de ejecución del técnico vive en `web/src/execution/TechnicianActions.jsx` (Llegué → fotos → informe → Terminé), y los botones de validar (CEC) y entregar (coordinador) en `web/src/execution/ReviewActions.jsx`. Ahí también hay `TODO(T…)` donde van tus componentes.
+- **[bloque 3]** La cámara y el GPS están en `web/src/lib/device.js` (`getLocation()`, `compressImage(file)`). No llamar a `navigator.geolocation` ni a la cámara desde otro lado.
+- **[bloque 3]** El técnico tiene "Mi historial" (`/technician/history`) y el CEC abre directo en lo que está "Informe listo".
 - **[bloque 2]** Ya funcionan listar, ver, crear y asignar actividades (`/activities`). Ver `docs/api.md`.
 - **[bloque 2]** Ya existen las pantallas del coordinador (lista con filtro, nueva actividad, detalle con asignación) y del cliente (sus servicios, nueva solicitud, detalle). Están en `pages/ActivitiesPage.jsx`, `pages/NewActivityPage.jsx` y `pages/ActivityDetailPage.jsx`, con estilos provisorios escritos directo en la página. Cada lugar donde va un componente tuyo está marcado con `TODO(T…)`: cuando lo termines, Santiago lo reemplaza.
 - **[bloque 2]** Para pedir datos a la API desde una pantalla está `useApi(path)` en `web/src/lib/useApi.js`, y para mostrar fechas `formatDateTime(iso)` en `web/src/lib/format.js`.
@@ -79,6 +83,28 @@ Bloque 2. También en `web/src/components/` y también de presentación. Convien
 - Un `<select>` grande y cómodo (`rounded-xl border px-4 py-3 w-full`).
 - Referencia: el select de `AssignForm` en `pages/ActivityDetailPage.jsx` (`TODO(T9)`).
 - **Terminado cuando:** en `/status` se ve con 3 técnicos de ejemplo y al elegir uno se muestra su id debajo.
+
+Bloque 3. También en `web/src/components/` y de presentación. Es la pantalla que más se va a ver en la demo: que sea clara y cómoda con el dedo.
+
+### T10 · `PhotoChecklist.jsx`
+- Props: `items` (lista de `{ category, label, required, count }`), `uploadingCategory` (la que se está subiendo, o `null`) y `onCapture(category)`.
+- Una fila por categoría: ✅ si `count > 0`, ⬜ si es obligatoria y falta (con la palabra "obligatoria" en rojo), ➕ para "Otra". A la derecha, un botón "📷 Tomar" que llama a `onCapture(category)` y dice "Subiendo…" cuando `uploadingCategory === category`.
+- No abre la cámara él mismo: eso lo hace la página.
+- Referencia: `PhotosStep` en `web/src/execution/TechnicianActions.jsx` (`TODO(T10, T12)`).
+- **Terminado cuando:** en `/status` se ve con las 5 categorías (usar `PHOTO_CATEGORY_LABELS`), dos de ellas con fotos, y al tocar "Tomar" se muestra en la consola qué categoría fue.
+
+### T11 · `ReportField.jsx`
+- Props: `value`, `onChange(texto)`, `maxLength` (por defecto 10.000) y `dirty` (si hay cambios sin guardar).
+- Un `<textarea>` grande con su `<label>` "Informe", el contador `actual / máximo` debajo y, si `dirty`, el aviso "Sin guardar" en ámbar.
+- Referencia: `ReportAndFinishStep` en `web/src/execution/TechnicianActions.jsx` (`TODO(T11)`).
+- **Terminado cuando:** en `/status`, al escribir se actualiza el contador.
+
+### T12 · `PhotoGrid.jsx`
+- Props: `photos` (lista de `{ id, url, category }`), `onDelete(id)` opcional.
+- Grilla de miniaturas cuadradas (`grid grid-cols-3 gap-2`, `aspect-square object-cover rounded-lg`). La URL va con `apiUrl(photo.url)` de `web/src/lib/api.js`. Si viene `onDelete`, cada miniatura tiene una ✕ arriba a la derecha.
+- Al tocar una miniatura, mostrarla en grande (un overlay negro que ocupa toda la pantalla, y se cierra tocándolo).
+- Referencia: las miniaturas de `PhotosStep` y la galería "Fotos" de `pages/ActivityDetailPage.jsx`.
+- **Terminado cuando:** en `/status` se ven 4 miniaturas de ejemplo (sirve cualquier imagen pública) y al tocar una se ve en grande.
 
 ## 🔄 En curso
 

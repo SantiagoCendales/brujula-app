@@ -1,12 +1,31 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useAuth } from '../auth/AuthContext.jsx';
+import ReviewActions from '../execution/ReviewActions.jsx';
+import TechnicianActions from '../execution/TechnicianActions.jsx';
 import { apiUrl, request } from '../lib/api.js';
 import { formatDateTime } from '../lib/format.js';
-import { ACTIVITY_TYPE_LABELS, PHOTO_CATEGORY_LABELS, STATUS_LABELS } from '../lib/labels.js';
+import { ACTIVITY_TYPE_LABELS, EVENT_TYPE_LABELS, PHOTO_CATEGORY_LABELS, STATUS_LABELS } from '../lib/labels.js';
 import { useApi } from '../lib/useApi.js';
 
 const ASSIGNABLE_STATUSES = ['requested', 'assigned'];
+
+function LocationValue({ location }) {
+  if (!location) return '—';
+  return (
+    <>
+      {formatDateTime(location.at)}{' '}
+      <a
+        href={`https://www.google.com/maps?q=${location.lat},${location.lng}`}
+        target="_blank"
+        rel="noreferrer"
+        className="text-brand underline"
+      >
+        mapa
+      </a>
+    </>
+  );
+}
 
 function Row({ label, children }) {
   return (
@@ -74,7 +93,10 @@ export default function ActivityDetailPage({ backPath }) {
   if (error) return <p className="text-red-700">{error.message}</p>;
 
   const { activity } = data;
+  const setActivity = (updated) => setData({ activity: updated });
   const canAssign = ['coordinator', 'admin'].includes(user.role) && ASSIGNABLE_STATUSES.includes(activity.status);
+  const isHolder = user.role === 'technician' && activity.technician?.id === user.id;
+  const isCapturing = isHolder && activity.status === 'on_site';
 
   return (
     <section className="flex flex-col gap-4">
@@ -98,21 +120,27 @@ export default function ActivityDetailPage({ backPath }) {
           <Row label="Programada">{formatDateTime(activity.scheduled_for)}</Row>
           <Row label="Técnico asignado">{activity.technician?.name ?? '—'}</Row>
           <Row label="Ejecutada por">{activity.performed_by?.name ?? '—'}</Row>
-          <Row label="Llegada">{formatDateTime(activity.arrival?.at)}</Row>
-          <Row label="Fin">{formatDateTime(activity.finish?.at)}</Row>
+          <Row label="Llegada">
+            <LocationValue location={activity.arrival} />
+          </Row>
+          <Row label="Fin">
+            <LocationValue location={activity.finish} />
+          </Row>
         </div>
       </div>
 
       {canAssign && <AssignForm activity={activity} onAssigned={setData} />}
+      {isHolder && <TechnicianActions activity={activity} onChange={setActivity} />}
+      <ReviewActions activity={activity} role={user.role} onChange={setActivity} />
 
-      {activity.report !== null && activity.report !== '' && (
+      {!isCapturing && activity.report !== null && activity.report !== '' && (
         <div className="rounded-2xl bg-white p-4 shadow-sm">
           <h2 className="font-semibold">Informe</h2>
           <p className="mt-2 whitespace-pre-wrap text-slate-700">{activity.report}</p>
         </div>
       )}
 
-      {activity.photos.length > 0 && (
+      {!isCapturing && activity.photos.length > 0 && (
         <div className="rounded-2xl bg-white p-4 shadow-sm">
           <h2 className="font-semibold">Fotos</h2>
           <div className="mt-3 grid grid-cols-2 gap-3">
@@ -133,7 +161,9 @@ export default function ActivityDetailPage({ backPath }) {
           <ol className="mt-3 flex flex-col gap-2 text-sm">
             {activity.events.map((event) => (
               <li key={event.id} className="border-l-2 border-brand pl-3">
-                <p className="font-medium">{event.to_status ? STATUS_LABELS[event.to_status] : event.type}</p>
+                <p className="font-medium">
+                  {event.to_status ? STATUS_LABELS[event.to_status] : (EVENT_TYPE_LABELS[event.type] ?? event.type)}
+                </p>
                 <p className="text-xs text-slate-500">
                   {event.user.name} · {formatDateTime(event.created_at)}
                 </p>

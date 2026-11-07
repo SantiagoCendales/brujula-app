@@ -140,25 +140,58 @@ export async function recordEvent(db, { activityId, userId, type, fromStatus = n
   );
 }
 
+// Use as a value in `changes` to store the server's clock, never the device's.
+export const NOW = Symbol('now');
+
+export function invalidStatus(currentStatus) {
+  return new HttpError(409, 'invalid_status', 'La actividad no está en un estado que permita esta acción', {
+    status: currentStatus,
+  });
+}
+
+export async function lockActivity(db, activityId) {
+  const { rows } = await db.query('select * from activities where id = $1 for update', [activityId]);
+  return rows[0];
+}
+
 // Moves an activity to a new status inside a transaction: locks the row, checks the current status
 // is one of `from`, applies `changes` and records the event. `changes` keys are column names from our code.
 export async function transition(db, { activityId, userId, from, to, type, changes = {}, note = null, data = null }) {
-  const { rows } = await db.query('select status from activities where id = $1 for update', [activityId]);
-  const currentStatus = rows[0].status;
-  if (!from.includes(currentStatus)) {
-    throw new HttpError(409, 'invalid_status', 'La actividad no está en un estado que permita esta acción', {
-      status: currentStatus,
-    });
-  }
+  const { status: currentStatus } = await lockActivity(db, activityId);
+  if (!from.includes(currentStatus)) throw invalidStatus(currentStatus);
 
   const params = [activityId, to];
   const assignments = ['status = $2', 'updated_at = now()'];
   for (const [column, value] of Object.entries(changes)) {
+    if (value === NOW) {
+      assignments.push(`${column} = now()`);
+      continue;
+    }
     params.push(value);
     assignments.push(`${column} = $${params.length}`);
   }
   await db.query(`update activities set ${assignments.join(', ')} where id = $1`, params);
   await recordEvent(db, { activityId, userId, type, fromStatus: currentStatus, toStatus: to, note, data });
+}
+
+// Technicians can see past work and vehicle history, but only act on what they hold right now.
+export function ensureHolder(activity, user) {
+  if (activity.technician_id !== user.id) {
+    throw new HttpError(403, 'forbidden', 'Esta actividad no está asignada a ti');
+  }
+}
+
+export async function ensureReportComplete(db, activity) {
+  const { rows } = await db.query('select distinct category from photos where activity_id = $1', [activity.id]);
+  const present = new Set(rows.map((row) => row.category));
+  const missingPhotos = REQUIRED_PHOTOS.filter((category) => !present.has(category));
+  const missingReport = activity.report.trim() === '';
+  if (missingPhotos.length > 0 || missingReport) {
+    throw new HttpError(422, 'incomplete_report', 'Faltan datos para cerrar el informe', {
+      missing_photos: missingPhotos,
+      missing_report: missingReport,
+    });
+  }
 }
 
 export async function ensureActiveTechnician(db, technicianId) {

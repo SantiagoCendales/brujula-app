@@ -1,18 +1,33 @@
+import { randomUUID } from 'node:crypto';
 import { Router } from 'express';
+import multer from 'multer';
 import { z } from 'zod';
 import { authenticate, requireRole } from '../auth/middleware.js';
 import { pool, withTransaction } from '../db/pool.js';
 import { vehicleScope } from '../domain/access.js';
 import {
   ensureActiveTechnician,
+  ensureHolder,
+  ensureReportComplete,
   findVisibleActivity,
   getActivityDetail,
+  invalidStatus,
   listActivities,
+  lockActivity,
+  NOW,
   recordEvent,
   transition,
 } from '../domain/activities.js';
-import { ACTIVITY_TYPES, STATUSES } from '../domain/rules.js';
+import {
+  ACTIVITY_TYPES,
+  MAX_PHOTO_BYTES,
+  MAX_PHOTOS_PER_ACTIVITY,
+  MAX_REPORT_LENGTH,
+  PHOTO_CATEGORIES,
+  STATUSES,
+} from '../domain/rules.js';
 import { HttpError } from '../lib/errors.js';
+import { deletePhotoFile, detectImageType, savePhotoFile } from '../lib/photos.js';
 import { idSchema, validate } from '../lib/validation.js';
 
 export const activitiesRouter = Router();
@@ -114,4 +129,155 @@ activitiesRouter.post('/:id/assign', requireRole('coordinator', 'admin'), async 
   );
 
   res.json({ activity: await getActivityDetail(pool, id, req.user) });
+});
+
+const coordinatesSchema = z.object({
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+  accuracy_m: z.number().min(0).max(100_000).nullish(),
+});
+
+async function respondWithDetail(res, activityId, user, status = 200) {
+  res.status(status).json({ activity: await getActivityDetail(pool, activityId, user) });
+}
+
+activitiesRouter.post('/:id/arrive', requireRole('technician'), async (req, res) => {
+  const id = validate(idSchema, req.params.id);
+  const coordinates = validate(coordinatesSchema, req.body);
+  ensureHolder(await findVisibleActivity(pool, id, req.user), req.user);
+
+  await withTransaction((db) =>
+    transition(db, {
+      activityId: id,
+      userId: req.user.id,
+      from: ['assigned'],
+      to: 'on_site',
+      type: 'arrived',
+      changes: {
+        arrived_at: NOW,
+        arrival_lat: coordinates.lat,
+        arrival_lng: coordinates.lng,
+        arrival_accuracy_m: coordinates.accuracy_m ?? null,
+        performed_by: req.user.id,
+      },
+    }),
+  );
+  await respondWithDetail(res, id, req.user);
+});
+
+const reportSchema = z.object({ report: z.string().max(MAX_REPORT_LENGTH) });
+
+activitiesRouter.patch('/:id/report', requireRole('technician'), async (req, res) => {
+  const id = validate(idSchema, req.params.id);
+  const { report } = validate(reportSchema, req.body);
+  ensureHolder(await findVisibleActivity(pool, id, req.user), req.user);
+
+  await withTransaction(async (db) => {
+    const activity = await lockActivity(db, id);
+    if (activity.status !== 'on_site') throw invalidStatus(activity.status);
+    await db.query('update activities set report = $2, updated_at = now() where id = $1', [id, report]);
+  });
+  await respondWithDetail(res, id, req.user);
+});
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_PHOTO_BYTES, files: 1, fields: 5 },
+});
+
+// Runs before multer so a request without permission is rejected before its file is read.
+async function loadActivityForUpload(req, _res, next) {
+  const id = validate(idSchema, req.params.id);
+  const activity = await findVisibleActivity(pool, id, req.user);
+  ensureHolder(activity, req.user);
+  if (activity.status !== 'on_site') throw invalidStatus(activity.status);
+  req.activity = activity;
+  next();
+}
+
+const photoFieldsSchema = z.object({ category: z.enum(PHOTO_CATEGORIES) });
+
+activitiesRouter.post(
+  '/:id/photos',
+  requireRole('technician'),
+  loadActivityForUpload,
+  upload.single('photo'),
+  async (req, res) => {
+    const { category } = validate(photoFieldsSchema, req.body);
+    if (!req.file) throw new HttpError(400, 'validation_error', 'Falta la foto', [{ field: 'photo', message: 'Requerida' }]);
+
+    const imageType = detectImageType(req.file.buffer);
+    if (!imageType) throw new HttpError(400, 'validation_error', 'La foto tiene que ser JPEG, PNG o WebP');
+
+    const { activity } = req;
+    // Company and activity in the key make every file traceable to its owner.
+    const storageKey = `${activity.company_id}/${activity.id}/${randomUUID()}.${imageType.extension}`;
+    await savePhotoFile(storageKey, req.file.buffer);
+
+    try {
+      const photoId = await withTransaction(async (db) => {
+        const locked = await lockActivity(db, activity.id);
+        if (locked.status !== 'on_site') throw invalidStatus(locked.status);
+        const { rows: counts } = await db.query('select count(*)::int as total from photos where activity_id = $1', [activity.id]);
+        if (counts[0].total >= MAX_PHOTOS_PER_ACTIVITY) {
+          throw new HttpError(409, 'too_many_photos', `Máximo ${MAX_PHOTOS_PER_ACTIVITY} fotos por actividad`);
+        }
+        const { rows } = await db.query(
+          `insert into photos (activity_id, category, storage_key, mime_type, size_bytes, uploaded_by)
+           values ($1, $2, $3, $4, $5, $6) returning id`,
+          [activity.id, category, storageKey, imageType.mimeType, req.file.size, req.user.id],
+        );
+        return rows[0].id;
+      });
+      res.status(201).json({ photo_id: photoId, activity: await getActivityDetail(pool, activity.id, req.user) });
+    } catch (error) {
+      await deletePhotoFile(storageKey);
+      throw error;
+    }
+  },
+);
+
+activitiesRouter.post('/:id/finish', requireRole('technician'), async (req, res) => {
+  const id = validate(idSchema, req.params.id);
+  const coordinates = validate(coordinatesSchema, req.body);
+  ensureHolder(await findVisibleActivity(pool, id, req.user), req.user);
+
+  await withTransaction(async (db) => {
+    const activity = await lockActivity(db, id);
+    if (activity.status !== 'on_site') throw invalidStatus(activity.status);
+    await ensureReportComplete(db, activity);
+    await transition(db, {
+      activityId: id,
+      userId: req.user.id,
+      from: ['on_site'],
+      to: 'report_ready',
+      type: 'finished',
+      changes: {
+        finished_at: NOW,
+        finish_lat: coordinates.lat,
+        finish_lng: coordinates.lng,
+        finish_accuracy_m: coordinates.accuracy_m ?? null,
+        technician_id: null,
+      },
+    });
+  });
+  await respondWithDetail(res, id, req.user);
+});
+
+activitiesRouter.post('/:id/validate', requireRole('cec', 'admin'), async (req, res) => {
+  const id = validate(idSchema, req.params.id);
+  await findVisibleActivity(pool, id, req.user);
+  await withTransaction((db) =>
+    transition(db, { activityId: id, userId: req.user.id, from: ['report_ready'], to: 'validated', type: 'validated' }),
+  );
+  await respondWithDetail(res, id, req.user);
+});
+
+activitiesRouter.post('/:id/deliver', requireRole('coordinator', 'admin'), async (req, res) => {
+  const id = validate(idSchema, req.params.id);
+  await findVisibleActivity(pool, id, req.user);
+  await withTransaction((db) =>
+    transition(db, { activityId: id, userId: req.user.id, from: ['validated'], to: 'delivered', type: 'delivered' }),
+  );
+  await respondWithDetail(res, id, req.user);
 });
