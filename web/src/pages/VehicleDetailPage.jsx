@@ -1,6 +1,7 @@
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, ClipboardList } from 'lucide-react';
 import { Link, useParams } from 'react-router';
 import ActivityCard from '@/components/ActivityCard';
+import EmptyState from '@/components/EmptyState';
 import ErrorMessage from '@/components/ErrorMessage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,7 +42,13 @@ export default function VehicleDetailPage({ backPath, activitiesPath }) {
       <h2 className="font-semibold">
         Historial de intervenciones <span className="text-muted-foreground">({history.length})</span>
       </h2>
-      {history.length === 0 && <p className="text-muted-foreground">Este vehículo todavía no tiene intervenciones.</p>}
+      {history.length === 0 && (
+        <EmptyState
+          icon={ClipboardList}
+          title="Sin intervenciones todavía"
+          description="Cada servicio que se haga en este vehículo va a quedar registrado acá."
+        />
+      )}
       <ul className="flex flex-col gap-3">
         {history.map((activity) => (
           <li key={activity.id}>

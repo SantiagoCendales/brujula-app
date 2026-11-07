@@ -2,6 +2,7 @@ import { LogOut } from 'lucide-react';
 import { Link, Outlet, useLocation } from 'react-router';
 import { useAuth } from '@/auth/AuthContext';
 import { homePathFor } from '@/auth/roles';
+import BrujulaLogo from '@/components/BrujulaLogo';
 import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/sonner';
 import ActivityNotifier from '@/layout/ActivityNotifier';
@@ -72,13 +73,16 @@ export default function AppLayout() {
     <div className="mx-auto min-h-dvh max-w-md">
       <div className="sticky top-0 z-10 shadow-sm">
         <header className="flex items-center justify-between bg-primary px-4 py-3 text-primary-foreground">
-          <Link to={homePathFor(user.role)}>
-            <p className="flex items-center gap-2 font-bold">
-              Brújula <LiveIndicator />
-            </p>
-            <p className="text-sm opacity-90">
-              {user.name} · {ROLE_LABELS[user.role]}
-            </p>
+          <Link to={homePathFor(user.role)} className="flex items-center gap-3">
+            <BrujulaLogo className="size-9 shrink-0" />
+            <div>
+              <p className="flex items-center gap-2 font-bold">
+                Brújula <LiveIndicator />
+              </p>
+              <p className="text-sm opacity-90">
+                {user.name} · {ROLE_LABELS[user.role]}
+              </p>
+            </div>
           </Link>
           <Button
             variant="ghost"
