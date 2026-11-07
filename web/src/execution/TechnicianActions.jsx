@@ -156,7 +156,7 @@ function ReturnedNotice({ activity }) {
   return (
     <Alert className="border-amber-300 bg-amber-50 text-amber-900">
       <Undo2 />
-      <AlertTitle>El CEC devolvió el informe</AlertTitle>
+      <AlertTitle>{lastReturn ? `${lastReturn.user.name} devolvió el informe` : 'Te devolvieron el informe'}</AlertTitle>
       <AlertDescription className="text-amber-900">
         {lastReturn?.note}
         <span className="mt-1 block text-xs opacity-80">
@@ -167,7 +167,7 @@ function ReturnedNotice({ activity }) {
   );
 }
 
-// On site it closes with "Terminé" (with GPS); after a return it resubmits to CEC (no GPS, the original stays).
+// On site it closes with "Terminé" (with GPS); after a return it resubmits for validation (no GPS, the original stays).
 // TODO(T11): replace the inline textarea with Sebas's <ReportField />.
 function ReportAndFinishStep({ activity, onChange }) {
   const isCorrection = activity.status === 'returned';
@@ -250,7 +250,7 @@ function ReportAndFinishStep({ activity, onChange }) {
           )}
           <Button size="touch" onClick={handleFinish} disabled={missing.length > 0 || finishing}>
             {finishing ? <LoaderCircle className="animate-spin" /> : isCorrection ? <Send /> : <CircleCheck />}
-            {finishing ? 'Enviando…' : isCorrection ? 'Reenviar al CEC' : 'Terminé'}
+            {finishing ? 'Enviando…' : isCorrection ? 'Reenviar a validación' : 'Terminé'}
           </Button>
           <ErrorMessage>{error}</ErrorMessage>
         </CardContent>

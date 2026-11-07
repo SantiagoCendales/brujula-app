@@ -29,8 +29,8 @@ export const ACTIVITY_TYPE_LABELS = {
 
 // Events whose label says more than the status they lead to. Any other event uses STATUS_LABELS of `to_status`.
 export const EVENT_TYPE_LABELS = {
-  returned: 'Devuelta por el CEC',
-  resubmitted: 'Reenviada al CEC',
+  returned: 'Informe devuelto',
+  resubmitted: 'Reenviada a validación',
   correction: 'Informe corregido',
   photo_added: 'Foto agregada',
   photo_deleted: 'Foto eliminada',

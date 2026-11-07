@@ -92,7 +92,9 @@ function Deliver({ activity, onChange }) {
   return (
     <Card>
       <CardContent className="flex flex-col gap-3">
-        <p className="text-muted-foreground">El informe ya fue validado por el CEC.</p>
+        <p className="text-muted-foreground">
+          El informe fue validado por {activity.events.findLast((event) => event.type === 'validated')?.user.name ?? 'el CEC'}.
+        </p>
         <Button size="touch" onClick={() => run('deliver')} disabled={busy}>
           <PackageCheck />
           {busy ? 'Guardando…' : 'Marcar como entregada al cliente'}

@@ -16,6 +16,9 @@ const TOAST_DURATION_MS = 12_000;
 // Name of whoever performed the activity, with a generic fallback if the activity could not be loaded.
 const technicianName = (activity, fallback) => activity?.performed_by?.name ?? fallback;
 
+// Who sent the report back (CEC or admin), from the audit log.
+const returnedBy = (activity) => activity?.events.findLast((event) => event.type === 'returned')?.user.name;
+
 // What each role gets notified about. The first matching rule wins; nobody is notified of their own actions.
 // `title` is a string or a function of the activity.
 const RULES = [
@@ -28,7 +31,7 @@ const RULES = [
   {
     roles: ['technician'],
     matches: (event, me) => event.change === 'returned' && event.technician_id === me.id,
-    title: 'El CEC devolvió un informe',
+    title: (activity) => (returnedBy(activity) ? `${returnedBy(activity)} devolvió tu informe` : 'Te devolvieron un informe'),
     Icon: Undo2,
   },
   {
