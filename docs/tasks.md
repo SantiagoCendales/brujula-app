@@ -56,14 +56,9 @@ Todos van en `web/src/components/`, se arman con los componentes de `components/
 
 ## 🔄 En curso
 
-### T7 · `StatusFilter.jsx`
-- Props: `value` (estado elegido, o `''` para "Todas") y `onChange(nuevoValor)`.
-- Fila con scroll horizontal de `<Button size="sm" className="rounded-full">`: "Todas" más los estados (sin `returned`), con `STATUS_LABELS`. La elegida con `variant="default"`, las demás con `variant="outline"`.
-- Referencia: las píldoras en `pages/ActivitiesPage.jsx`.
-- **Terminado cuando:** en `/status`, al tocar una se resalta y el valor elegido se muestra debajo.
-
 ## ✅ Hechas
 
+- **T7 · `StatusFilter`:** conectado en `ActivitiesPage` y probado en `/status` en móvil.
 - **T6 · `ActivityCard`:** revisada y conectada en todas las listas (`pages/ActivitiesPage.jsx`). 👏
 - **T0 · Setup:** clonar, instalar y conectar el front a la API por ngrok.
 
@@ -72,6 +67,12 @@ Todos van en `web/src/components/`, se arman con los componentes de `components/
 - Un `<Link to={to}>` de `react-router` que envuelve un `<Card size="sm">` con: placa y tipo (`ACTIVITY_TYPE_LABELS`), la empresa, `<StatusBadge>`, la descripción en máximo 2 líneas (`line-clamp-2`), el técnico si tiene, y la fecha (`scheduled_for` o, si no hay, `created_at`, con `formatDateTime`).
 - Referencia: el card en `pages/ActivitiesPage.jsx`.
 - **Terminado cuando:** en `/status` se ven dos cards con datos de ejemplo de `docs/api.md`: uno con técnico y otro sin; probado en viewport móvil, sin errores en consola y publicado.
+
+### T7 · `StatusFilter.jsx`
+- Props: `value` (estado elegido, o `''` para "Todas") y `onChange(nuevoValor)`.
+- Fila con scroll horizontal de `<Button size="sm" className="rounded-full">`: "Todas" más los estados (sin `returned`), con `STATUS_LABELS`. La elegida con `variant="default"`, las demás con `variant="outline"`.
+- Referencia: las píldoras en `pages/ActivitiesPage.jsx`.
+- **Terminado cuando:** en `/status`, al tocar una se resalta y el valor elegido se muestra debajo; probado en móvil, sin errores de consola y publicado.
 
 ## ❌ Ya no hacen falta (las cubre shadcn/ui)
 
