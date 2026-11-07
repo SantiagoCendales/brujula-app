@@ -1,6 +1,7 @@
-import { Camera, CircleCheck, Circle, LoaderCircle, MapPin, Plus, Send, Undo2, X } from 'lucide-react';
+import { CircleCheck, LoaderCircle, MapPin, Send, Undo2, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import ErrorMessage from '@/components/ErrorMessage';
+import PhotoChecklist from '@/components/PhotoChecklist';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -44,7 +45,7 @@ function ArriveStep({ activity, onChange }) {
   );
 }
 
-// TODO(T10, T12): replace the inline checklist and thumbnails with Sebas's <PhotoChecklist /> and <PhotoGrid />.
+// TODO(T12): replace the inline thumbnails with Sebas's <PhotoGrid />.
 function PhotosStep({ activity, onChange }) {
   const inputRef = useRef(null);
   const [pendingCategory, setPendingCategory] = useState(null);
@@ -100,6 +101,17 @@ function PhotosStep({ activity, onChange }) {
     }
   }
 
+  const photoItems = [...REQUIRED_PHOTOS, 'other'].map((category) => {
+    const photos = activity.photos.filter((photo) => photo.category === category);
+    return {
+      category,
+      label: PHOTO_CATEGORY_LABELS[category],
+      required: REQUIRED_PHOTOS.includes(category),
+      count: photos.length,
+      photos,
+    };
+  });
+
   return (
     <Card>
       <CardHeader>
@@ -107,50 +119,32 @@ function PhotosStep({ activity, onChange }) {
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <input ref={inputRef} type="file" accept="image/*" capture="environment" onChange={handleFile} className="hidden" />
-
-        {[...REQUIRED_PHOTOS, 'other'].map((category) => {
-          const photos = activity.photos.filter((photo) => photo.category === category);
-          const isRequired = category !== 'other';
-          const done = photos.length > 0;
-          const StatusIcon = !isRequired ? Plus : done ? CircleCheck : Circle;
-          return (
-            <div key={category} className="rounded-lg border p-3">
-              <div className="flex items-center justify-between gap-2">
-                <p className="flex items-center gap-2 font-medium">
-                  <StatusIcon className={`size-5 ${done ? 'text-emerald-600' : 'text-muted-foreground'}`} />
-                  {PHOTO_CATEGORY_LABELS[category]}
-                  {isRequired && !done && <span className="text-xs text-destructive">obligatoria</span>}
-                </p>
-                <Button variant="secondary" size="lg" onClick={() => openCamera(category)} disabled={uploadingCategory !== null}>
-                  {uploadingCategory === category ? <LoaderCircle className="animate-spin" /> : <Camera />}
-                  {uploadingCategory === category ? 'Subiendo…' : 'Tomar'}
-                </Button>
-              </div>
-              {photos.length > 0 && (
-                <div className="mt-2 grid grid-cols-3 gap-2">
-                  {photos.map((photo) => (
-                    <div key={photo.id} className="relative">
-                      <img
-                        src={apiUrl(photo.url)}
-                        alt={PHOTO_CATEGORY_LABELS[category]}
-                        className="aspect-square w-full rounded-md object-cover"
-                      />
-                      <Button
-                        variant="secondary"
-                        size="icon-sm"
-                        onClick={() => handleDelete(photo.id)}
-                        aria-label="Eliminar foto"
-                        className="absolute top-1 right-1 rounded-full bg-black/60 text-white hover:bg-black/80"
-                      >
-                        <X />
-                      </Button>
-                    </div>
-                  ))}
+        <PhotoChecklist items={photoItems} uploadingCategory={uploadingCategory} onCapture={openCamera} />
+        {photoItems.filter((item) => item.photos.length > 0).map((item) => (
+          <div key={item.category} className="rounded-lg border p-3">
+            <p className="font-medium">{item.label}</p>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {item.photos.map((photo) => (
+                <div key={photo.id} className="relative">
+                  <img
+                    src={apiUrl(photo.url)}
+                    alt={item.label}
+                    className="aspect-square w-full rounded-md object-cover"
+                  />
+                  <Button
+                    variant="secondary"
+                    size="icon-sm"
+                    onClick={() => handleDelete(photo.id)}
+                    aria-label="Eliminar foto"
+                    className="absolute top-1 right-1 rounded-full bg-black/60 text-white hover:bg-black/80"
+                  >
+                    <X />
+                  </Button>
                 </div>
-              )}
+              ))}
             </div>
-          );
-        })}
+          </div>
+        ))}
         <ErrorMessage>{error}</ErrorMessage>
       </CardContent>
     </Card>

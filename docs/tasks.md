@@ -33,13 +33,6 @@ Lugar único de las tareas de Sebas. Se actualiza en el mismo commit que el cód
 
 Todos van en `web/src/components/`, se arman con los componentes de `components/ui/` y son de presentación: reciben datos por props y **no llaman a la API** (Santiago los conecta). Cada uno tiene una versión provisoria en las páginas, marcada con `TODO(T…)`: mirala, entendé qué hace y sacala a su propio componente, más prolija.
 
-### T10 · `PhotoChecklist.jsx`
-- Props: `items` (lista de `{ category, label, required, count }`), `uploadingCategory` (la que se está subiendo, o `null`) y `onCapture(category)`.
-- Una fila por categoría con un ícono de `lucide-react`: `CircleCheck` verde si `count > 0`, `Circle` gris si es obligatoria y falta (más la palabra "obligatoria" en `text-destructive`), `Plus` para "Otra". A la derecha, `<Button variant="secondary" size="lg">` con el ícono `Camera` y "Tomar", que pasa a `LoaderCircle` girando y "Subiendo…" cuando `uploadingCategory === category`.
-- No abre la cámara él mismo: eso lo hace la página.
-- Referencia: `PhotosStep` en `web/src/execution/TechnicianActions.jsx` (`TODO(T10, T12)`).
-- **Terminado cuando:** en `/status` se ve con las 5 categorías (`PHOTO_CATEGORY_LABELS`), dos con fotos, y al tocar "Tomar" se muestra en la consola qué categoría fue.
-
 ### T11 · `ReportField.jsx`
 - Props: `value`, `onChange(texto)`, `maxLength` (por defecto 10.000) y `dirty` (si hay cambios sin guardar).
 - `<Label>` "Informe", `<Textarea className="text-base">`, el contador `actual / máximo` debajo y, si `dirty`, el aviso "Sin guardar" en ámbar.
@@ -59,6 +52,7 @@ _(nada)_
 
 ## ✅ Hechas
 
+- **T10 · `PhotoChecklist`:** conectado en `PhotosStep` y probado en `/status` en móvil.
 - **T8 · `EventTimeline`:** conectado en `ActivityDetailPage` y probado en `/status` en móvil.
 - **T7 · `StatusFilter`:** conectado en `ActivitiesPage` y probado en `/status` en móvil.
 - **T6 · `ActivityCard`:** revisada y conectada en todas las listas (`pages/ActivitiesPage.jsx`). 👏
@@ -81,6 +75,13 @@ _(nada)_
 - Línea de tiempo vertical dentro de un `<Card>`: por cada evento, un punto de color `bg-primary` sobre una línea, el texto (`STATUS_LABELS[event.to_status]`, o `EVENT_TYPE_LABELS[event.type]` si no cambió de estado), quién lo hizo y cuándo.
 - Referencia: el bloque "Historial" en `pages/ActivityDetailPage.jsx`.
 - **Terminado cuando:** en `/status` se ve una línea de tiempo con 3 eventos de ejemplo; probado en viewport móvil, sin errores en consola y publicado.
+
+### T10 · `PhotoChecklist.jsx`
+- Props: `items` (lista de `{ category, label, required, count }`), `uploadingCategory` (la que se está subiendo, o `null`) y `onCapture(category)`.
+- Una fila por categoría con un ícono de `lucide-react`: `CircleCheck` verde si `count > 0`, `Circle` gris si es obligatoria y falta (más la palabra "obligatoria" en `text-destructive`), `Plus` para "Otra". A la derecha, `<Button variant="secondary" size="lg">` con el ícono `Camera` y "Tomar", que pasa a `LoaderCircle` girando y "Subiendo…" cuando `uploadingCategory === category`.
+- No abre la cámara él mismo: eso lo hace la página.
+- Referencia: `PhotosStep` en `web/src/execution/TechnicianActions.jsx`.
+- **Terminado cuando:** en `/status` se ve con las 5 categorías (`PHOTO_CATEGORY_LABELS`), dos con fotos, y al tocar "Tomar" se muestra en la consola qué categoría fue; probado en viewport móvil, sin errores en consola y publicado.
 
 ## ❌ Ya no hacen falta (las cubre shadcn/ui)
 

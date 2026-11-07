@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import ActivityCard from '@/components/ActivityCard';
 import EventTimeline from '@/components/EventTimeline';
+import PhotoChecklist from '@/components/PhotoChecklist';
 import StatusFilter from '@/components/StatusFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { request } from '@/lib/api';
-import { STATUS_LABELS } from '@/lib/labels';
+import { PHOTO_CATEGORY_LABELS, STATUS_LABELS } from '@/lib/labels';
+import { REQUIRED_PHOTOS } from '@/lib/rules';
 
 const sampleActivities = [
   {
@@ -58,6 +60,14 @@ const sampleEvents = [
   },
 ];
 
+const samplePhotoCounts = { plate: 1, issue_found: 1 };
+const samplePhotoItems = Object.entries(PHOTO_CATEGORY_LABELS).map(([category, label]) => ({
+  category,
+  label,
+  required: REQUIRED_PHOTOS.includes(category),
+  count: samplePhotoCounts[category] ?? 0,
+}));
+
 // API status screen (/status). Also the place to preview components while building them.
 export default function Home() {
   const [health, setHealth] = useState({ loading: true });
@@ -107,6 +117,15 @@ export default function Home() {
       </section>
 
       <EventTimeline events={sampleEvents} />
+
+      <section className="space-y-3">
+        <h2 className="font-semibold">Checklist de fotos</h2>
+        <PhotoChecklist
+          items={samplePhotoItems}
+          uploadingCategory={null}
+          onCapture={(category) => console.log('Photo category:', category)}
+        />
+      </section>
     </main>
   );
 }
