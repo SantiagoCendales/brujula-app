@@ -13,7 +13,11 @@ import { useActivityChanges } from '@/lib/liveUpdates';
 const VIBRATION_MS = 200;
 const TOAST_DURATION_MS = 12_000;
 
+// Name of whoever performed the activity, with a generic fallback if the activity could not be loaded.
+const technicianName = (activity, fallback) => activity?.performed_by?.name ?? fallback;
+
 // What each role gets notified about. The first matching rule wins; nobody is notified of their own actions.
+// `title` is a string or a function of the activity.
 const RULES = [
   {
     roles: ['technician'],
@@ -30,7 +34,7 @@ const RULES = [
   {
     roles: ['coordinator', 'admin'],
     matches: (event) => event.change === 'arrived',
-    title: 'Un técnico llegó al sitio',
+    title: (activity) => `${technicianName(activity, 'Un técnico')} llegó al sitio`,
     Icon: MapPin,
   },
   {
@@ -48,19 +52,19 @@ const RULES = [
   {
     roles: ['cec', 'admin'],
     matches: (event) => event.change === 'finished',
-    title: 'Nuevo informe para validar',
+    title: (activity) => `${technicianName(activity, 'Un técnico')} envió un informe para validar`,
     Icon: FileCheck,
   },
   {
     roles: ['cec', 'admin'],
     matches: (event) => event.change === 'resubmitted',
-    title: 'Informe corregido para validar',
+    title: (activity) => `${technicianName(activity, 'Un técnico')} corrigió un informe`,
     Icon: FileCheck,
   },
   {
     roles: ['client'],
     matches: (event) => event.change === 'arrived',
-    title: 'El técnico llegó a tu vehículo',
+    title: (activity) => `${technicianName(activity, 'El técnico')} llegó a tu vehículo`,
     Icon: MapPin,
   },
   {
@@ -87,7 +91,7 @@ function NotificationToast({ Icon, title, activity, onView, onDismiss }) {
               <span className="text-muted-foreground"> · {ACTIVITY_TYPE_LABELS[activity.type]}</span>
             </p>
             <p className="truncate text-xs text-muted-foreground">
-              {activity.performed_by?.name ?? activity.company.name}
+              {activity.company.name}
               {activity.scheduled_for && ` · ${formatDateTime(activity.scheduled_for)}`}
             </p>
           </>
@@ -124,7 +128,7 @@ export default function ActivityNotifier() {
         (toastId) => (
           <NotificationToast
             Icon={rule.Icon}
-            title={rule.title}
+            title={typeof rule.title === 'function' ? rule.title(activity) : rule.title}
             activity={activity}
             onView={() => {
               toast.dismiss(toastId);
