@@ -62,14 +62,11 @@ Todos van en `web/src/components/`, se arman con los componentes de `components/
 
 ## 🔄 En curso
 
-### T6 · `ActivityCard.jsx`
-- Props: `activity` (un `activity_summary` de `docs/api.md`) y `to` (la ruta del detalle).
-- Un `<Link to={to}>` de `react-router` que envuelve un `<Card size="sm">` con: placa y tipo (`ACTIVITY_TYPE_LABELS`), la empresa, `<StatusBadge>`, la descripción en máximo 2 líneas (`line-clamp-2`), el técnico si tiene, y la fecha (`scheduled_for` o, si no hay, `created_at`, con `formatDateTime`).
-- Referencia: el card en `pages/ActivitiesPage.jsx` (`TODO(T6, T7)`).
-- **Terminado cuando:** en `/status` se ven dos cards con datos de ejemplo de `docs/api.md`: uno con técnico y otro sin.
+_(nada)_
 
 ## ✅ Hechas
 
+- **T6 · `ActivityCard`:** revisada y conectada en todas las listas (`pages/ActivitiesPage.jsx`). 👏
 - **T0 · Setup:** clonar, instalar y conectar el front a la API por ngrok.
 
 ## ❌ Ya no hacen falta (las cubre shadcn/ui)
