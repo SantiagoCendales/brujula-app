@@ -18,7 +18,7 @@ export const PASSWORD = 'test-password';
 
 export async function setup() {
   await migrate();
-  const ids = await seed({ password: PASSWORD });
+  const ids = await seed({ password: PASSWORD, demo: false });
   return { app: createApp(), ids };
 }
 

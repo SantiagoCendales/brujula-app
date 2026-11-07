@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { config } from '../config.js';
 import { isMainModule } from '../lib/isMainModule.js';
 import { deletePhotoFile } from '../lib/photos.js';
+import { seedDemoData } from './demoData.js';
 import { pool, withTransaction } from './pool.js';
 
 // All data is made up (hackathon rule): no real plates, names or clients.
@@ -38,8 +39,9 @@ async function deletePhotoFiles(db) {
   }
 }
 
-// Empties the database and loads the demo data. Returns the ids by key, for the tests.
-export async function seed({ password = process.env.SEED_PASSWORD ?? 'brujula123' } = {}) {
+// Empties the database and loads the base data, plus the demo activities unless `demo` is false
+// (the tests use only the base data). Returns the ids by key.
+export async function seed({ password = process.env.SEED_PASSWORD ?? 'brujula123', demo = true } = {}) {
   const passwordHash = await bcrypt.hash(password, 10);
 
   return withTransaction(async (db) => {
@@ -103,6 +105,7 @@ export async function seed({ password = process.env.SEED_PASSWORD ?? 'brujula123
       }
     }
 
+    if (demo) ids.demoActivities = await seedDemoData(db, ids);
     return ids;
   });
 }
