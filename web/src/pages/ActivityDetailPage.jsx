@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useAuth } from '@/auth/AuthContext';
 import ErrorMessage from '@/components/ErrorMessage';
+import EventTimeline from '@/components/EventTimeline';
 import StatusBadge from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +13,7 @@ import ReviewActions from '@/execution/ReviewActions';
 import TechnicianActions from '@/execution/TechnicianActions';
 import { apiUrl, request } from '@/lib/api';
 import { formatDateTime } from '@/lib/format';
-import { ACTIVITY_TYPE_LABELS, EVENT_TYPE_LABELS, PHOTO_CATEGORY_LABELS, STATUS_LABELS } from '@/lib/labels';
+import { ACTIVITY_TYPE_LABELS, PHOTO_CATEGORY_LABELS, STATUS_LABELS } from '@/lib/labels';
 import { useApi } from '@/lib/useApi';
 
 const ASSIGNABLE_STATUSES = ['requested', 'assigned'];
@@ -184,26 +185,7 @@ export default function ActivityDetailPage({ backPath }) {
       )}
 
       {activity.events.length > 0 && (
-        // TODO(T8): replace with Sebas's <EventTimeline events />.
-        <Card>
-          <CardHeader>
-            <CardTitle>Historial</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ol className="flex flex-col gap-2">
-              {activity.events.map((event) => (
-                <li key={event.id} className="border-l-2 border-primary pl-3">
-                  <p className="font-medium">
-                    {event.to_status ? STATUS_LABELS[event.to_status] : (EVENT_TYPE_LABELS[event.type] ?? event.type)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {event.user.name} · {formatDateTime(event.created_at)}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </CardContent>
-        </Card>
+        <EventTimeline events={activity.events} />
       )}
     </section>
   );

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import ActivityCard from '@/components/ActivityCard';
+import EventTimeline from '@/components/EventTimeline';
 import StatusFilter from '@/components/StatusFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { request } from '@/lib/api';
@@ -27,6 +28,33 @@ const sampleActivities = [
     company: { id: 1, name: 'Transportes Cóndor' },
     vehicle: { id: 2, plate: 'DEMO-102', make: 'Toyota', model: 'Hilux' },
     technician: null,
+  },
+];
+
+const sampleEvents = [
+  {
+    id: 5,
+    type: 'assigned',
+    from_status: 'requested',
+    to_status: 'assigned',
+    created_at: '2026-11-07T13:15:00.000Z',
+    user: { id: 2, name: 'Laura Coordinadora' },
+  },
+  {
+    id: 7,
+    type: 'arrived',
+    from_status: 'assigned',
+    to_status: 'on_site',
+    created_at: '2026-11-07T14:05:12.000Z',
+    user: { id: 3, name: 'Tomás Técnico' },
+  },
+  {
+    id: 8,
+    type: 'photo_deleted',
+    from_status: null,
+    to_status: null,
+    created_at: '2026-11-07T14:10:00.000Z',
+    user: { id: 3, name: 'Tomás Técnico' },
   },
 ];
 
@@ -77,6 +105,8 @@ export default function Home() {
           Filtro elegido: {selectedStatus ? STATUS_LABELS[selectedStatus] : 'Todas'}
         </p>
       </section>
+
+      <EventTimeline events={sampleEvents} />
     </main>
   );
 }

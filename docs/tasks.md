@@ -30,12 +30,6 @@ Lugar único de las tareas de Sebas. Se actualiza en el mismo commit que el cód
 
 Todos van en `web/src/components/`, se arman con los componentes de `components/ui/` y son de presentación: reciben datos por props y **no llaman a la API** (Santiago los conecta). Cada uno tiene una versión provisoria en las páginas, marcada con `TODO(T…)`: mirala, entendé qué hace y sacala a su propio componente, más prolija.
 
-### T8 · `EventTimeline.jsx`
-- Props: `events` (la lista `events` de `activity_detail`).
-- Línea de tiempo vertical dentro de un `<Card>`: por cada evento, un punto de color `bg-primary` sobre una línea, el texto (`STATUS_LABELS[event.to_status]`, o `EVENT_TYPE_LABELS[event.type]` si no cambió de estado), quién lo hizo y cuándo.
-- Referencia: el bloque "Historial" en `pages/ActivityDetailPage.jsx` (`TODO(T8)`).
-- **Terminado cuando:** en `/status` se ve una línea de tiempo con 3 eventos de ejemplo.
-
 ### T10 · `PhotoChecklist.jsx`
 - Props: `items` (lista de `{ category, label, required, count }`), `uploadingCategory` (la que se está subiendo, o `null`) y `onCapture(category)`.
 - Una fila por categoría con un ícono de `lucide-react`: `CircleCheck` verde si `count > 0`, `Circle` gris si es obligatoria y falta (más la palabra "obligatoria" en `text-destructive`), `Plus` para "Otra". A la derecha, `<Button variant="secondary" size="lg">` con el ícono `Camera` y "Tomar", que pasa a `LoaderCircle` girando y "Subiendo…" cuando `uploadingCategory === category`.
@@ -58,8 +52,11 @@ Todos van en `web/src/components/`, se arman con los componentes de `components/
 
 ## 🔄 En curso
 
+_(nada)_
+
 ## ✅ Hechas
 
+- **T8 · `EventTimeline`:** conectado en `ActivityDetailPage` y probado en `/status` en móvil.
 - **T7 · `StatusFilter`:** conectado en `ActivitiesPage` y probado en `/status` en móvil.
 - **T6 · `ActivityCard`:** revisada y conectada en todas las listas (`pages/ActivitiesPage.jsx`). 👏
 - **T0 · Setup:** clonar, instalar y conectar el front a la API por ngrok.
@@ -75,6 +72,12 @@ Todos van en `web/src/components/`, se arman con los componentes de `components/
 - Fila con scroll horizontal de `<Button size="sm" className="rounded-full">`: "Todas" más los estados (sin `returned`), con `STATUS_LABELS`. La elegida con `variant="default"`, las demás con `variant="outline"`.
 - Referencia: las píldoras en `pages/ActivitiesPage.jsx`.
 - **Terminado cuando:** en `/status`, al tocar una se resalta y el valor elegido se muestra debajo; probado en móvil, sin errores de consola y publicado.
+
+### T8 · `EventTimeline.jsx`
+- Props: `events` (la lista `events` de `activity_detail`).
+- Línea de tiempo vertical dentro de un `<Card>`: por cada evento, un punto de color `bg-primary` sobre una línea, el texto (`STATUS_LABELS[event.to_status]`, o `EVENT_TYPE_LABELS[event.type]` si no cambió de estado), quién lo hizo y cuándo.
+- Referencia: el bloque "Historial" en `pages/ActivityDetailPage.jsx`.
+- **Terminado cuando:** en `/status` se ve una línea de tiempo con 3 eventos de ejemplo; probado en viewport móvil, sin errores en consola y publicado.
 
 ## ❌ Ya no hacen falta (las cubre shadcn/ui)
 
