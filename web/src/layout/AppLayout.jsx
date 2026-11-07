@@ -95,7 +95,8 @@ export default function AppLayout() {
       <main className="p-4">
         <Outlet />
       </main>
-      <Toaster position="top-center" richColors closeButton />
+      {/* Offset clears the sticky header and tabs (~110 px) so notifications never cover the navigation. */}
+      <Toaster position="top-center" offset={{ top: 120 }} mobileOffset={{ top: 120, left: 12, right: 12 }} />
       <AssignmentNotifier />
     </div>
   );
