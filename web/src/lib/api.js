@@ -26,7 +26,11 @@ export async function request(path, { method = 'GET', body } = {}) {
   const data = await response.json().catch(() => null);
   if (!response.ok) {
     const error = data?.error;
-    throw new ApiError(response.status, error?.code ?? 'unknown_error', error?.message ?? 'Error inesperado', error?.details ?? null);
+    if (!error) {
+      // No JSON error body: the request never reached our API (e.g. the Vite proxy could not connect to it).
+      throw new ApiError(response.status, 'network_error', `No se pudo conectar con la API (HTTP ${response.status}). ¿Está corriendo el servidor y es correcta la dirección en web/.env.local?`, null);
+    }
+    throw new ApiError(response.status, error.code, error.message, error.details);
   }
   return data;
 }

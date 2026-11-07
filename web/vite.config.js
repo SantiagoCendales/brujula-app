@@ -15,6 +15,8 @@ export default defineConfig(({ mode }) => {
         '/api': {
           target: env.API_PROXY_TARGET || 'http://localhost:3001',
           changeOrigin: true,
+          // ngrok's free plan answers browser-like requests with an HTML warning page unless this header is sent.
+          headers: { 'ngrok-skip-browser-warning': 'true' },
         },
       },
     },
