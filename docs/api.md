@@ -2,7 +2,9 @@
 
 Este documento es el acuerdo entre el front y el back. Si una ruta cambia, se actualiza acá en el mismo commit.
 
-Las rutas marcadas con 🔜 todavía no están implementadas. Se pueden armar pantallas con los ejemplos de respuesta.
+Las secciones marcadas con ✅ ya funcionan. Las marcadas con 🔜 todavía no están implementadas: se pueden armar pantallas con los ejemplos de respuesta.
+
+En el front, las etiquetas en español de cada valor ya están en `web/src/lib/labels.js` (`STATUS_LABELS`, `ROLE_LABELS`, `ACTIVITY_TYPE_LABELS`, `PHOTO_CATEGORY_LABELS`).
 
 **Idioma:** el código, las rutas, los campos y los valores van en inglés. Los textos que ve el usuario van en español: el front traduce los valores (`on_site` → "En sitio") y muestra tal cual el `message` de los errores.
 
@@ -81,7 +83,7 @@ Fuera del MVP: `returned` (el CEC devuelve con una nota y vuelve al técnico que
 |---|---|---|
 | GET | `/health` | `{ "ok": true, "database": "connected" }` |
 
-### Autenticación 🔜
+### Autenticación ✅
 
 | Método | Ruta | Quién | Recibe | Devuelve |
 |---|---|---|---|---|
@@ -94,7 +96,7 @@ Fuera del MVP: `returned` (el CEC devuelve con una nota y vuelve al técnico que
 
 El token dura 12 horas.
 
-### Catálogos 🔜
+### Catálogos ✅
 
 | Método | Ruta | Quién | Devuelve |
 |---|---|---|---|
@@ -120,7 +122,7 @@ El token dura 12 horas.
 | `inspection` | Revisión | | `other` | Otra |
 | `uninstall` | Desinstalación | | | |
 
-### Vehículos 🔜
+### Vehículos ✅
 
 | Método | Ruta | Quién | Recibe | Devuelve |
 |---|---|---|---|---|
