@@ -55,6 +55,6 @@ photosRouter.delete('/:id', authenticate, requireRole('technician'), async (req,
     });
   });
 
-  await notifyActivityChanged(pool, activity.id);
+  await notifyActivityChanged(pool, activity.id, { change: 'photo_deleted', actorId: req.user.id });
   res.json({ activity: await getActivityDetail(pool, activity.id, req.user) });
 });

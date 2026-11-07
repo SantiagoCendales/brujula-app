@@ -18,11 +18,14 @@ function canSee(user, change) {
 }
 
 function publish(change) {
+  // `change` (what happened), `actor_id` (who did it) and `technician_id` (who holds it now) let each app decide
+  // whether to show a notification, without notifying people about their own actions.
   const event = {
     type: 'activity.changed',
     activity_id: change.activityId,
     status: change.status,
-    // Lets the technician's app tell "assigned to me" apart from other changes, to show a notification.
+    change: change.change,
+    actor_id: change.actorId,
     technician_id: change.technicianId,
   };
   for (const subscriber of subscribers) {
@@ -31,8 +34,10 @@ function publish(change) {
 }
 
 // Call after the change is committed, so whoever refetches sees the new data.
-// `previousTechnicianId` lets a technician who just lost the activity (reassignment) refresh their list.
-export async function notifyActivityChanged(db, activityId, { previousTechnicianId = null } = {}) {
+// `change` names what happened (created, assigned, arrived, finished, validated, returned, resubmitted, delivered,
+// report_updated, photo_added, photo_deleted). `previousTechnicianId` lets a technician who just lost the activity
+// (reassignment) refresh their list.
+export async function notifyActivityChanged(db, activityId, { change, actorId, previousTechnicianId = null }) {
   const { rows } = await db.query('select company_id, technician_id, performed_by, status from activities where id = $1', [
     activityId,
   ]);
@@ -42,6 +47,8 @@ export async function notifyActivityChanged(db, activityId, { previousTechnician
     activityId,
     companyId: activity.company_id,
     status: activity.status,
+    change,
+    actorId,
     technicianId: activity.technician_id,
     technicianIds: [activity.technician_id, activity.performed_by, previousTechnicianId].filter(Boolean),
   });

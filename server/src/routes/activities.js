@@ -108,7 +108,7 @@ activitiesRouter.post('/', requireRole('client', 'coordinator', 'admin'), async 
     return id;
   });
 
-  await respondAfterChange(res, activityId, user, { status: 201 });
+  await respondAfterChange(res, activityId, user, 'created', { status: 201 });
 });
 
 const assignSchema = z.object({ technician_id: z.number().int().positive() });
@@ -131,7 +131,7 @@ activitiesRouter.post('/:id/assign', requireRole('coordinator', 'admin'), async 
     }),
   );
 
-  await respondAfterChange(res, id, req.user, { previousTechnicianId });
+  await respondAfterChange(res, id, req.user, 'assigned', { previousTechnicianId });
 });
 
 const coordinatesSchema = z.object({
@@ -141,8 +141,8 @@ const coordinatesSchema = z.object({
 });
 
 // Every mutation ends here: tell the live screens first, then answer with the updated activity.
-async function respondAfterChange(res, activityId, user, { status = 200, previousTechnicianId, extra } = {}) {
-  await notifyActivityChanged(pool, activityId, { previousTechnicianId });
+async function respondAfterChange(res, activityId, user, change, { status = 200, previousTechnicianId, extra } = {}) {
+  await notifyActivityChanged(pool, activityId, { change, actorId: user.id, previousTechnicianId });
   res.status(status).json({ ...extra, activity: await getActivityDetail(pool, activityId, user) });
 }
 
@@ -167,7 +167,7 @@ activitiesRouter.post('/:id/arrive', requireRole('technician'), async (req, res)
       },
     }),
   );
-  await respondAfterChange(res, id, req.user);
+  await respondAfterChange(res, id, req.user, 'arrived');
 });
 
 const reportSchema = z.object({ report: z.string().max(MAX_REPORT_LENGTH) });
@@ -190,7 +190,7 @@ activitiesRouter.patch('/:id/report', requireRole('technician'), async (req, res
       });
     }
   });
-  await respondAfterChange(res, id, req.user);
+  await respondAfterChange(res, id, req.user, 'report_updated');
 });
 
 const upload = multer({
@@ -250,7 +250,7 @@ activitiesRouter.post(
         }
         return rows[0].id;
       });
-      await respondAfterChange(res, activity.id, req.user, { status: 201, extra: { photo_id: photoId } });
+      await respondAfterChange(res, activity.id, req.user, 'photo_added', { status: 201, extra: { photo_id: photoId } });
     } catch (error) {
       await deletePhotoFile(storageKey);
       throw error;
@@ -282,7 +282,7 @@ activitiesRouter.post('/:id/finish', requireRole('technician'), async (req, res)
       },
     });
   });
-  await respondAfterChange(res, id, req.user);
+  await respondAfterChange(res, id, req.user, 'finished');
 });
 
 activitiesRouter.post('/:id/validate', requireRole('cec', 'admin'), async (req, res) => {
@@ -291,7 +291,7 @@ activitiesRouter.post('/:id/validate', requireRole('cec', 'admin'), async (req, 
   await withTransaction((db) =>
     transition(db, { activityId: id, userId: req.user.id, from: ['report_ready'], to: 'validated', type: 'validated' }),
   );
-  await respondAfterChange(res, id, req.user);
+  await respondAfterChange(res, id, req.user, 'validated');
 });
 
 const returnSchema = z.object({ note: z.string().trim().min(3).max(MAX_RETURN_NOTE_LENGTH) });
@@ -312,7 +312,7 @@ activitiesRouter.post('/:id/return', requireRole('cec', 'admin'), async (req, re
       note,
     }),
   );
-  await respondAfterChange(res, id, req.user);
+  await respondAfterChange(res, id, req.user, 'returned');
 });
 
 // No GPS here: corrections can be made away from the site. The original arrival and finish stay as evidence.
@@ -333,7 +333,7 @@ activitiesRouter.post('/:id/resubmit', requireRole('technician'), async (req, re
       changes: { technician_id: null },
     });
   });
-  await respondAfterChange(res, id, req.user);
+  await respondAfterChange(res, id, req.user, 'resubmitted');
 });
 
 activitiesRouter.post('/:id/deliver', requireRole('coordinator', 'admin'), async (req, res) => {
@@ -342,5 +342,5 @@ activitiesRouter.post('/:id/deliver', requireRole('coordinator', 'admin'), async
   await withTransaction((db) =>
     transition(db, { activityId: id, userId: req.user.id, from: ['validated'], to: 'delivered', type: 'delivered' }),
   );
-  await respondAfterChange(res, id, req.user);
+  await respondAfterChange(res, id, req.user, 'delivered');
 });
