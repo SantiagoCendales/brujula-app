@@ -10,6 +10,9 @@ Lugar único de las tareas de Sebas. Se actualiza en el mismo commit que el cód
 
 ## 📣 Novedades que afectan al front
 
+- **[componentes]** Nuevos componentes reutilizables en `web/src/components/`: `ScheduleField` (fecha con calendario y hora con dos selectores), `VehicleCombobox` (buscador de vehículo por placa), `ActivityTypePicker` (tipo de servicio con íconos) y `ConfirmAction` (botón que pide confirmación). Ejemplos en `pages/NewActivityPage.jsx` y `execution/`.
+- **[componentes]** Nuevos de shadcn en `components/ui/`: `Calendar`, `Popover`, `Command`, `ToggleGroup`, `AlertDialog`, `Drawer` (panel que sube desde abajo, como "Asignar técnico") y `Tabs` (el detalle ahora tiene Resumen / Fotos / Historial). Tu `PhotoGrid` (T12) va en la pestaña **Fotos** de `pages/ActivityDetailPage.jsx`.
+- **[componentes]** Hay dependencias nuevas: después del `git pull`, correr `npm install`.
 - **[filtros]** Tu `StatusFilter` ahora muestra la cantidad en cada filtro ("En sitio 2"). Le sumé una prop opcional `counts` (la respuesta de `GET /activities/counts`); sin ella se ve igual que antes. Se actualiza en vivo.
 - **[pulido]** Nuevos `components/BrujulaLogo.jsx` (el logo, toma el color del texto) y `components/EmptyState.jsx` (pantalla vacía con ícono, título y texto). Usarlos en pantallas nuevas.
 - **[notificaciones]** Cada rol recibe un aviso arriba (tarjeta con ícono, placa y botón **Ver actividad**) cuando pasa algo que le importa: al técnico cuando le asignan o le devuelven una actividad; al coordinador cuando un técnico llega, envía o reenvía un informe, un cliente pide un servicio o se valida un informe; al CEC cuando hay un informe para validar; al cliente cuando el técnico llega o le entregan el informe. Las reglas están en `layout/ActivityNotifier.jsx` (`RULES`). Para otros avisos simples: `import { toast } from 'sonner'` y `toast('Texto')`.

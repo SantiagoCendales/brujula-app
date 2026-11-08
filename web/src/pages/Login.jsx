@@ -9,6 +9,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+// Always in development; in a build only when VITE_SHOW_DEMO_USERS=true (e.g. the hackathon APK). Never in a real release.
+const SHOW_DEMO_USERS = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEMO_USERS === 'true';
+
 const DEMO_USERS = [
   { label: 'Admin', email: 'admin@brujula.test' },
   { label: 'Coordinador', email: 'coordinador@brujula.test' },
@@ -87,7 +90,7 @@ export default function Login() {
           </CardContent>
         </Card>
 
-        {import.meta.env.DEV && (
+        {SHOW_DEMO_USERS && (
           <section className="text-center">
             <p className="text-xs text-muted-foreground">Usuarios de demo · contraseña brujula123</p>
             <ul className="mt-2 flex flex-wrap justify-center gap-2">

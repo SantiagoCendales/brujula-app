@@ -1,6 +1,7 @@
 import { CircleCheck, LoaderCircle, MapPin, Send, Undo2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import ErrorMessage from '@/components/ErrorMessage';
+import ConfirmAction from '@/components/ConfirmAction';
 import PhotoChecklist from '@/components/PhotoChecklist';
 import PhotoGrid from '@/components/PhotoGrid';
 import ReportField from '@/components/ReportField';
@@ -205,10 +206,20 @@ function ReportAndFinishStep({ activity, onChange }) {
               Para {isCorrection ? 'reenviar' : 'terminar'} faltan: {missing.join(', ')}.
             </p>
           )}
-          <Button size="touch" onClick={handleFinish} disabled={missing.length > 0 || finishing}>
+          <ConfirmAction
+            title={isCorrection ? '¿Reenviar el informe corregido?' : '¿Terminar la actividad?'}
+            description={
+              isCorrection
+                ? 'Vuelve a validación con tus correcciones.'
+                : 'Se registran la hora y tu ubicación, y el informe pasa a validación. Después ya no lo puedes editar.'
+            }
+            confirmLabel={isCorrection ? 'Reenviar' : 'Terminar'}
+            onConfirm={handleFinish}
+            disabled={missing.length > 0 || finishing}
+          >
             {finishing ? <LoaderCircle className="animate-spin" /> : isCorrection ? <Send /> : <CircleCheck />}
             {finishing ? 'Enviando…' : isCorrection ? 'Reenviar a validación' : 'Terminé'}
-          </Button>
+          </ConfirmAction>
           <ErrorMessage>{error}</ErrorMessage>
         </CardContent>
       </Card>
