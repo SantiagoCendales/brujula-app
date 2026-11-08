@@ -1,12 +1,13 @@
-import { CircleCheck, LoaderCircle, MapPin, Send, Undo2, X } from 'lucide-react';
+import { CircleCheck, LoaderCircle, MapPin, Send, Undo2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import ErrorMessage from '@/components/ErrorMessage';
 import PhotoChecklist from '@/components/PhotoChecklist';
+import PhotoGrid from '@/components/PhotoGrid';
 import ReportField from '@/components/ReportField';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { apiUrl, request } from '@/lib/api';
+import { request } from '@/lib/api';
 import { compressImage, getLocation, isNativeApp, takeNativePhoto } from '@/lib/device';
 import { formatDateTime } from '@/lib/format';
 import { PHOTO_CATEGORY_LABELS } from '@/lib/labels';
@@ -44,7 +45,6 @@ function ArriveStep({ activity, onChange }) {
   );
 }
 
-// TODO(T12): replace the inline thumbnails with Sebas's <PhotoGrid />.
 function PhotosStep({ activity, onChange }) {
   const inputRef = useRef(null);
   const [pendingCategory, setPendingCategory] = useState(null);
@@ -119,31 +119,7 @@ function PhotosStep({ activity, onChange }) {
       <CardContent className="flex flex-col gap-3">
         <input ref={inputRef} type="file" accept="image/*" capture="environment" onChange={handleFile} className="hidden" />
         <PhotoChecklist items={photoItems} uploadingCategory={uploadingCategory} onCapture={openCamera} />
-        {photoItems.filter((item) => item.photos.length > 0).map((item) => (
-          <div key={item.category} className="rounded-lg border p-3">
-            <p className="font-medium">{item.label}</p>
-            <div className="mt-2 grid grid-cols-3 gap-2">
-              {item.photos.map((photo) => (
-                <div key={photo.id} className="relative">
-                  <img
-                    src={apiUrl(photo.url)}
-                    alt={item.label}
-                    className="aspect-square w-full rounded-md object-cover"
-                  />
-                  <Button
-                    variant="secondary"
-                    size="icon-sm"
-                    onClick={() => handleDelete(photo.id)}
-                    aria-label="Eliminar foto"
-                    className="absolute top-1 right-1 rounded-full bg-black/60 text-white hover:bg-black/80"
-                  >
-                    <X />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
+        <PhotoGrid photos={activity.photos} onDelete={handleDelete} />
         <ErrorMessage>{error}</ErrorMessage>
       </CardContent>
     </Card>

@@ -38,19 +38,13 @@ Lugar único de las tareas de Sebas. Se actualiza en el mismo commit que el cód
 
 Todos van en `web/src/components/`, se arman con los componentes de `components/ui/` y son de presentación: reciben datos por props y **no llaman a la API** (Santiago los conecta). Cada uno tiene una versión provisoria en las páginas, marcada con `TODO(T…)`: mirala, entendé qué hace y sacala a su propio componente, más prolija.
 
-### T12 · `PhotoGrid.jsx`
-- Props: `photos` (lista de `{ id, url, category }`) y `onDelete(id)` opcional.
-- Grilla de miniaturas cuadradas (`grid grid-cols-3 gap-2`, `aspect-square object-cover rounded-md`). La URL va con `apiUrl(photo.url)` de `web/src/lib/api.js`. Si viene `onDelete`, cada miniatura tiene un `<Button size="icon-sm">` con el ícono `X` arriba a la derecha.
-- Al tocar una miniatura se abre en grande con `<Dialog>` de `@/components/ui/dialog`.
-- Referencia: las miniaturas de `PhotosStep` y la galería "Fotos" de `pages/ActivityDetailPage.jsx` (`TODO(T12)`).
-- **Terminado cuando:** en `/status` se ven 4 miniaturas de ejemplo (sirve cualquier imagen pública) y al tocar una se abre en grande.
-
 ## 🔄 En curso
 
 _(nada)_
 
 ## ✅ Hechas
 
+- **T12 · `PhotoGrid`:** conectado en `ActivityDetailPage` y `PhotosStep`, probado en `/status` en móvil.
 - **T11 · `ReportField`:** conectado en `ReportAndFinishStep` y probado en `/status` en móvil.
 - **T10 · `PhotoChecklist`:** conectado en `PhotosStep` y probado en `/status` en móvil.
 - **T8 · `EventTimeline`:** conectado en `ActivityDetailPage` y probado en `/status` en móvil.
@@ -88,6 +82,13 @@ _(nada)_
 - `<Label>` "Informe", `<Textarea className="text-base">`, el contador `actual / máximo` debajo y, si `dirty`, el aviso "Sin guardar" en ámbar.
 - Referencia: `ReportAndFinishStep` en `web/src/execution/TechnicianActions.jsx`.
 - **Terminado cuando:** en `/status`, al escribir se actualiza el contador; probado en viewport móvil, sin errores en consola y publicado.
+
+### T12 · `PhotoGrid.jsx`
+- Props: `photos` (lista de `{ id, url, category }`) y `onDelete(id)` opcional.
+- Grilla de miniaturas cuadradas (`grid grid-cols-3 gap-2`, `aspect-square object-cover rounded-md`). La URL va con `apiUrl(photo.url)`. Si viene `onDelete`, cada miniatura tiene un `<Button size="icon-sm">` con el ícono `X` arriba a la derecha.
+- Al tocar una miniatura se abre en grande con `<Dialog>` de `@/components/ui/dialog`.
+- Referencia: las miniaturas de `PhotosStep` y la galería "Fotos" de `pages/ActivityDetailPage.jsx`.
+- **Terminado cuando:** en `/status` se ven 4 miniaturas de ejemplo y al tocar una se abre en grande; probado en viewport móvil, sin errores en consola y publicado.
 
 ## ❌ Ya no hacen falta (las cubre shadcn/ui)
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import ActivityCard from '@/components/ActivityCard';
 import EventTimeline from '@/components/EventTimeline';
 import PhotoChecklist from '@/components/PhotoChecklist';
+import PhotoGrid from '@/components/PhotoGrid';
 import ReportField from '@/components/ReportField';
 import StatusFilter from '@/components/StatusFilter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -68,6 +69,13 @@ const samplePhotoItems = Object.entries(PHOTO_CATEGORY_LABELS).map(([category, l
   required: REQUIRED_PHOTOS.includes(category),
   count: samplePhotoCounts[category] ?? 0,
 }));
+
+const samplePhotos = [
+  { id: 201, category: 'plate', url: 'https://placehold.co/640x480/png?text=Demo+frente' },
+  { id: 202, category: 'odometer', url: 'https://placehold.co/640x480/png?text=Demo+tablero' },
+  { id: 203, category: 'issue_found', url: 'https://placehold.co/640x480/png?text=Demo+hallazgo' },
+  { id: 204, category: 'issue_fixed', url: 'https://placehold.co/640x480/png?text=Demo+solucion' },
+];
 
 // API status screen (/status). Also the place to preview components while building them.
 export default function Home() {
@@ -140,6 +148,11 @@ export default function Home() {
           }}
           dirty={sampleReportDirty}
         />
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="font-semibold">Galería de fotos</h2>
+        <PhotoGrid photos={samplePhotos} />
       </section>
     </main>
   );

@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router';
 import { useAuth } from '@/auth/AuthContext';
 import ErrorMessage from '@/components/ErrorMessage';
 import EventTimeline from '@/components/EventTimeline';
+import PhotoGrid from '@/components/PhotoGrid';
 import StatusBadge from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,9 +12,9 @@ import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { Skeleton } from '@/components/ui/skeleton';
 import ReviewActions from '@/execution/ReviewActions';
 import TechnicianActions from '@/execution/TechnicianActions';
-import { apiUrl, request } from '@/lib/api';
+import { request } from '@/lib/api';
 import { formatDateTime } from '@/lib/format';
-import { ACTIVITY_TYPE_LABELS, PHOTO_CATEGORY_LABELS } from '@/lib/labels';
+import { ACTIVITY_TYPE_LABELS } from '@/lib/labels';
 import { useActivityChanges } from '@/lib/liveUpdates';
 import { useApi } from '@/lib/useApi';
 
@@ -173,22 +174,12 @@ export default function ActivityDetailPage({ backPath }) {
       )}
 
       {!isCapturing && activity.photos.length > 0 && (
-        // TODO(T12): replace with Sebas's <PhotoGrid photos /> (thumbnails that open full screen).
         <Card>
           <CardHeader>
             <CardTitle>Fotos</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-3">
-            {activity.photos.map((photo) => (
-              <figure key={photo.id}>
-                <img
-                  src={apiUrl(photo.url)}
-                  alt={PHOTO_CATEGORY_LABELS[photo.category]}
-                  className="aspect-square w-full rounded-lg object-cover"
-                />
-                <figcaption className="mt-1 text-xs text-muted-foreground">{PHOTO_CATEGORY_LABELS[photo.category]}</figcaption>
-              </figure>
-            ))}
+          <CardContent>
+            <PhotoGrid photos={activity.photos} />
           </CardContent>
         </Card>
       )}
