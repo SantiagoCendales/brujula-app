@@ -10,7 +10,7 @@ Lugar único de las tareas de Sebas. Se actualiza en el mismo commit que el cód
 
 ## 📣 Novedades que afectan al front
 
-- **[componentes]** Nuevos componentes reutilizables en `web/src/components/`: `ScheduleField` (fecha con calendario y hora con dos selectores), `VehicleCombobox` (buscador de vehículo por placa), `ActivityTypePicker` (tipo de servicio con íconos) y `ConfirmAction` (botón que pide confirmación). Ejemplos en `pages/NewActivityPage.jsx` y `execution/`.
+- **[componentes]** Nuevos componentes reutilizables en `web/src/components/`: `ScheduleField` (fecha con calendario y hora con dos selectores), `VehicleCombobox` (buscador de vehículo por placa), `ActivityTypePicker` (tipo de servicio con íconos), `TechnicianDrawer` (panel desde abajo para elegir técnico) y `ConfirmAction` (botón que pide confirmación). Ejemplos en `pages/NewActivityPage.jsx` y `execution/`.
 - **[componentes]** Nuevos de shadcn en `components/ui/`: `Calendar`, `Popover`, `Command`, `ToggleGroup`, `AlertDialog`, `Drawer` (panel que sube desde abajo, como "Asignar técnico") y `Tabs` (el detalle ahora tiene Resumen / Fotos / Historial). Tu `PhotoGrid` (T12) va en la pestaña **Fotos** de `pages/ActivityDetailPage.jsx`.
 - **[componentes]** Hay dependencias nuevas: después del `git pull`, correr `npm install`.
 - **[filtros]** Tu `StatusFilter` ahora muestra la cantidad en cada filtro ("En sitio 2"). Le sumé una prop opcional `counts` (la respuesta de `GET /activities/counts`); sin ella se ve igual que antes. Se actualiza en vivo.

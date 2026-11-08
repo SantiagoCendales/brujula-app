@@ -1,4 +1,4 @@
-import { Check, ChevronLeft, UserRound } from 'lucide-react';
+import { ChevronLeft, UserRound } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useAuth } from '@/auth/AuthContext';
@@ -6,18 +6,9 @@ import ErrorMessage from '@/components/ErrorMessage';
 import EventTimeline from '@/components/EventTimeline';
 import PhotoGrid from '@/components/PhotoGrid';
 import StatusBadge from '@/components/StatusBadge';
+import TechnicianDrawer from '@/components/TechnicianDrawer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from '@/components/ui/drawer';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ReviewActions from '@/execution/ReviewActions';
@@ -56,17 +47,13 @@ function LocationValue({ location }) {
   );
 }
 
-// Technicians as a list of big buttons in a bottom sheet, instead of a dropdown.
 function AssignDrawer({ activity, onAssigned }) {
   const { data } = useApi('/users?role=technician');
-  const [open, setOpen] = useState(false);
-  const [technicianId, setTechnicianId] = useState(activity.technician?.id ?? null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const actionLabel = activity.technician ? 'Reasignar' : 'Asignar';
-  const chosen = data?.users.find((technician) => technician.id === technicianId);
 
-  async function handleAssign() {
+  async function handleAssign(technicianId) {
     setSaving(true);
     setError('');
     try {
@@ -75,67 +62,32 @@ function AssignDrawer({ activity, onAssigned }) {
         body: { technician_id: technicianId },
       });
       onAssigned(result);
-      setOpen(false);
+      return true;
     } catch (apiError) {
       setError(apiError.message);
+      return false;
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
+    <TechnicianDrawer
+      technicians={data?.users ?? []}
+      initialId={activity.technician?.id ?? null}
+      title={`${actionLabel} técnico`}
+      description={`${activity.vehicle.plate} · ${ACTIVITY_TYPE_LABELS[activity.type]}. El técnico recibe un aviso al instante.`}
+      actionLabel={actionLabel}
+      onConfirm={handleAssign}
+      busy={saving}
+      error={error}
+      trigger={
         <Button size="touch" variant={activity.technician ? 'outline' : 'default'}>
           <UserRound />
           {actionLabel} técnico
         </Button>
-      </DrawerTrigger>
-      <DrawerContent>
-        <div className="mx-auto flex w-full max-w-md flex-col">
-          <DrawerHeader>
-            <DrawerTitle>{actionLabel} técnico</DrawerTitle>
-            <DrawerDescription>
-              {activity.vehicle.plate} · {ACTIVITY_TYPE_LABELS[activity.type]}. El técnico recibe un aviso al instante.
-            </DrawerDescription>
-          </DrawerHeader>
-          <ul className="flex max-h-[40vh] flex-col gap-2 overflow-y-auto px-4">
-            {data?.users.map((technician) => {
-              const selected = technician.id === technicianId;
-              return (
-                <li key={technician.id}>
-                  <button
-                    type="button"
-                    onClick={() => setTechnicianId(technician.id)}
-                    aria-pressed={selected}
-                    className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left text-base ${
-                      selected ? 'border-primary bg-primary/10' : 'bg-card'
-                    }`}
-                  >
-                    <span className="flex size-10 items-center justify-center rounded-full bg-muted font-semibold">
-                      {technician.name.charAt(0)}
-                    </span>
-                    <span className="flex-1 font-medium">{technician.name}</span>
-                    {selected && <Check className="size-5 text-primary" />}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-          <DrawerFooter>
-            <ErrorMessage>{error}</ErrorMessage>
-            <Button size="touch" onClick={handleAssign} disabled={saving || !technicianId}>
-              {saving ? 'Guardando…' : chosen ? `${actionLabel} a ${chosen.name}` : 'Elige un técnico'}
-            </Button>
-            <DrawerClose asChild>
-              <Button size="lg" variant="ghost">
-                Cancelar
-              </Button>
-            </DrawerClose>
-          </DrawerFooter>
-        </div>
-      </DrawerContent>
-    </Drawer>
+      }
+    />
   );
 }
 

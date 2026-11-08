@@ -1,14 +1,14 @@
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, UserRound, X } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAuth } from '@/auth/AuthContext';
 import ActivityTypePicker from '@/components/ActivityTypePicker';
 import ErrorMessage from '@/components/ErrorMessage';
 import ScheduleField from '@/components/ScheduleField';
+import TechnicianDrawer from '@/components/TechnicianDrawer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
 import VehicleCombobox from '@/components/VehicleCombobox';
 import { request } from '@/lib/api';
@@ -35,10 +35,12 @@ export default function NewActivityPage({ basePath }) {
   const [type, setType] = useState('');
   const [description, setDescription] = useState('');
   const [scheduledFor, setScheduledFor] = useState(null);
-  const [technicianId, setTechnicianId] = useState('');
+  const [technicianId, setTechnicianId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  const technicianList = technicians.data?.users ?? [];
+  const chosenTechnician = technicianList.find((technician) => technician.id === technicianId);
   const isComplete = vehicleId && type;
 
   async function handleSubmit(event) {
@@ -48,7 +50,7 @@ export default function NewActivityPage({ basePath }) {
     const body = { vehicle_id: vehicleId, type, description };
     if (isCoordinator) {
       body.scheduled_for = scheduledFor?.toISOString() ?? null;
-      body.technician_id = technicianId ? Number(technicianId) : null;
+      body.technician_id = technicianId;
     }
     try {
       const { activity } = await request('/activities', { method: 'POST', body });
@@ -103,21 +105,43 @@ export default function NewActivityPage({ basePath }) {
                 <Field label="Fecha programada">
                   <ScheduleField value={scheduledFor} onChange={setScheduledFor} />
                 </Field>
-                <Field id="technician" label="Técnico (opcional, se puede asignar después)">
-                  <NativeSelect
-                    id="technician"
-                    size="touch"
-                    value={technicianId}
-                    onChange={(event) => setTechnicianId(event.target.value)}
-                    className="w-full"
-                  >
-                    <NativeSelectOption value="">Sin asignar</NativeSelectOption>
-                    {technicians.data?.users.map((technician) => (
-                      <NativeSelectOption key={technician.id} value={technician.id}>
-                        {technician.name}
-                      </NativeSelectOption>
-                    ))}
-                  </NativeSelect>
+                <Field label="Técnico">
+                  <div className="flex gap-2">
+                    <TechnicianDrawer
+                      technicians={technicianList}
+                      initialId={technicianId}
+                      title="Asignar técnico"
+                      description="Opcional: también se puede asignar después. El técnico recibe un aviso al crear la actividad."
+                      actionLabel="Asignar"
+                      onConfirm={setTechnicianId}
+                      trigger={
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="h-12 flex-1 justify-start rounded-xl bg-card px-4 text-base font-normal"
+                        >
+                          <UserRound className="text-muted-foreground" />
+                          {chosenTechnician ? (
+                            chosenTechnician.name
+                          ) : (
+                            <span className="text-muted-foreground">Asignar técnico (opcional)</span>
+                          )}
+                        </Button>
+                      }
+                    />
+                    {chosenTechnician && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-lg"
+                        className="size-12"
+                        onClick={() => setTechnicianId(null)}
+                        aria-label="Quitar técnico"
+                      >
+                        <X />
+                      </Button>
+                    )}
+                  </div>
                 </Field>
               </>
             )}
