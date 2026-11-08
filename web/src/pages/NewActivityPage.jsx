@@ -2,16 +2,16 @@ import { ChevronLeft } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAuth } from '@/auth/AuthContext';
+import ActivityTypePicker from '@/components/ActivityTypePicker';
 import ErrorMessage from '@/components/ErrorMessage';
+import ScheduleField from '@/components/ScheduleField';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
+import VehicleCombobox from '@/components/VehicleCombobox';
 import { request } from '@/lib/api';
-import { localInputToIso } from '@/lib/format';
-import { ACTIVITY_TYPE_LABELS } from '@/lib/labels';
 import { useApi } from '@/lib/useApi';
 
 function Field({ id, label, children }) {
@@ -31,22 +31,24 @@ export default function NewActivityPage({ basePath }) {
   const vehicles = useApi('/vehicles');
   const technicians = useApi(isCoordinator ? '/users?role=technician' : null);
 
-  const [form, setForm] = useState({ vehicle_id: '', type: '', description: '', scheduled_for: '', technician_id: '' });
+  const [vehicleId, setVehicleId] = useState(null);
+  const [type, setType] = useState('');
+  const [description, setDescription] = useState('');
+  const [scheduledFor, setScheduledFor] = useState(null);
+  const [technicianId, setTechnicianId] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  function update(field) {
-    return (event) => setForm((previous) => ({ ...previous, [field]: event.target.value }));
-  }
+  const isComplete = vehicleId && type;
 
   async function handleSubmit(event) {
     event.preventDefault();
     setSaving(true);
     setError('');
-    const body = { vehicle_id: Number(form.vehicle_id), type: form.type, description: form.description };
+    const body = { vehicle_id: vehicleId, type, description };
     if (isCoordinator) {
-      body.scheduled_for = localInputToIso(form.scheduled_for);
-      body.technician_id = form.technician_id ? Number(form.technician_id) : null;
+      body.scheduled_for = scheduledFor?.toISOString() ?? null;
+      body.technician_id = technicianId ? Number(technicianId) : null;
     }
     try {
       const { activity } = await request('/activities', { method: 'POST', body });
@@ -69,28 +71,19 @@ export default function NewActivityPage({ basePath }) {
 
       <Card>
         <CardContent>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <Field id="vehicle" label="Vehículo">
-              <NativeSelect id="vehicle" size="touch" required value={form.vehicle_id} onChange={update('vehicle_id')} className="w-full">
-                <NativeSelectOption value="">Elegir vehículo…</NativeSelectOption>
-                {vehicles.data?.vehicles.map((vehicle) => (
-                  <NativeSelectOption key={vehicle.id} value={vehicle.id}>
-                    {vehicle.plate} · {vehicle.make} {vehicle.model}
-                    {isCoordinator ? ` (${vehicle.company.name})` : ''}
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
+              <VehicleCombobox
+                id="vehicle"
+                vehicles={vehicles.data?.vehicles ?? []}
+                value={vehicleId}
+                onChange={setVehicleId}
+                showCompany={isCoordinator}
+              />
             </Field>
 
-            <Field id="type" label="Tipo de servicio">
-              <NativeSelect id="type" size="touch" required value={form.type} onChange={update('type')} className="w-full">
-                <NativeSelectOption value="">Elegir tipo…</NativeSelectOption>
-                {Object.entries(ACTIVITY_TYPE_LABELS).map(([value, label]) => (
-                  <NativeSelectOption key={value} value={value}>
-                    {label}
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
+            <Field label="Tipo de servicio">
+              <ActivityTypePicker value={type} onChange={setType} />
             </Field>
 
             <Field id="description" label="Descripción">
@@ -98,8 +91,8 @@ export default function NewActivityPage({ basePath }) {
                 id="description"
                 rows={4}
                 maxLength={2000}
-                value={form.description}
-                onChange={update('description')}
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
                 placeholder="¿Qué hay que hacer o qué está fallando?"
                 className="text-base"
               />
@@ -107,17 +100,17 @@ export default function NewActivityPage({ basePath }) {
 
             {isCoordinator && (
               <>
-                <Field id="scheduled" label="Fecha programada (opcional)">
-                  <Input
-                    id="scheduled"
-                    type="datetime-local"
-                    value={form.scheduled_for}
-                    onChange={update('scheduled_for')}
-                    className="h-12 text-base"
-                  />
+                <Field label="Fecha programada">
+                  <ScheduleField value={scheduledFor} onChange={setScheduledFor} />
                 </Field>
                 <Field id="technician" label="Técnico (opcional, se puede asignar después)">
-                  <NativeSelect id="technician" size="touch" value={form.technician_id} onChange={update('technician_id')} className="w-full">
+                  <NativeSelect
+                    id="technician"
+                    size="touch"
+                    value={technicianId}
+                    onChange={(event) => setTechnicianId(event.target.value)}
+                    className="w-full"
+                  >
                     <NativeSelectOption value="">Sin asignar</NativeSelectOption>
                     {technicians.data?.users.map((technician) => (
                       <NativeSelectOption key={technician.id} value={technician.id}>
@@ -130,7 +123,8 @@ export default function NewActivityPage({ basePath }) {
             )}
 
             <ErrorMessage>{error}</ErrorMessage>
-            <Button type="submit" size="touch" disabled={saving}>
+            {!isComplete && <p className="text-sm text-muted-foreground">Elige el vehículo y el tipo de servicio para continuar.</p>}
+            <Button type="submit" size="touch" disabled={saving || !isComplete}>
               {saving ? 'Guardando…' : 'Crear'}
             </Button>
           </form>

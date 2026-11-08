@@ -1,9 +1,19 @@
 import { CircleCheck, PackageCheck, Undo2 } from 'lucide-react';
 import { useState } from 'react';
+import ConfirmAction from '@/components/ConfirmAction';
 import ErrorMessage from '@/components/ErrorMessage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer';
 import { Textarea } from '@/components/ui/textarea';
 import { request } from '@/lib/api';
 
@@ -20,31 +30,42 @@ function useAction(activity, onChange) {
     try {
       const result = await request(`/activities/${activity.id}/${action}`, { method: 'POST', body });
       onChange(result.activity);
+      return true;
     } catch (actionError) {
       setError(actionError.message);
       setBusy(false);
+      return false;
     }
   }
 
   return { busy, error, run };
 }
 
-// CEC: validate the report, or send it back to the technician with a note.
-function ValidateOrReturn({ activity, onChange }) {
-  const { busy, error, run } = useAction(activity, onChange);
-  const [returning, setReturning] = useState(false);
+function ReturnDrawer({ busy, onReturn }) {
+  const [open, setOpen] = useState(false);
   const [note, setNote] = useState('');
 
+  async function handleReturn() {
+    if (await onReturn(note)) setOpen(false);
+  }
+
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-3">
-        {returning ? (
-          <>
-            <Label htmlFor="return-note" className="text-base">
-              ¿Qué tiene que corregir el técnico?
-            </Label>
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger asChild>
+        <Button size="touch" variant="outline" disabled={busy}>
+          <Undo2 />
+          Devolver al técnico
+        </Button>
+      </DrawerTrigger>
+      <DrawerContent>
+        <div className="mx-auto flex w-full max-w-md flex-col">
+          <DrawerHeader>
+            <DrawerTitle>Devolver al técnico</DrawerTitle>
+            <DrawerDescription>Escribe qué tiene que corregir. Le llega un aviso con tu nota.</DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4">
             <Textarea
-              id="return-note"
+              aria-label="Qué tiene que corregir"
               rows={4}
               maxLength={MAX_NOTE_LENGTH}
               value={note}
@@ -52,34 +73,43 @@ function ValidateOrReturn({ activity, onChange }) {
               placeholder="Ej.: la foto del kilometraje no se lee"
               className="text-base"
             />
-            <Button
-              size="touch"
-              variant="destructive"
-              onClick={() => run('return', { note })}
-              disabled={busy || note.trim().length < MIN_NOTE_LENGTH}
-            >
+          </div>
+          <DrawerFooter>
+            <Button size="touch" variant="destructive" onClick={handleReturn} disabled={busy || note.trim().length < MIN_NOTE_LENGTH}>
               <Undo2 />
               {busy ? 'Devolviendo…' : 'Devolver con esta nota'}
             </Button>
-            <Button variant="ghost" size="lg" onClick={() => setReturning(false)} disabled={busy}>
-              Cancelar
-            </Button>
-          </>
-        ) : (
-          <>
-            <p className="text-muted-foreground">
-              Revisa el informe y las fotos. Al validar o devolver queda registrado quién y cuándo.
-            </p>
-            <Button size="touch" onClick={() => run('validate')} disabled={busy}>
-              <CircleCheck />
-              {busy ? 'Validando…' : 'Validar informe'}
-            </Button>
-            <Button size="touch" variant="outline" onClick={() => setReturning(true)} disabled={busy}>
-              <Undo2 />
-              Devolver al técnico
-            </Button>
-          </>
-        )}
+            <DrawerClose asChild>
+              <Button size="lg" variant="ghost">
+                Cancelar
+              </Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}
+
+// CEC: validate the report, or send it back to the technician with a note.
+function ValidateOrReturn({ activity, onChange }) {
+  const { busy, error, run } = useAction(activity, onChange);
+
+  return (
+    <Card>
+      <CardContent className="flex flex-col gap-3">
+        <p className="text-muted-foreground">Revisa el informe y las fotos. Al validar o devolver queda registrado quién y cuándo.</p>
+        <ConfirmAction
+          title="¿Validar este informe?"
+          description="Quedará registrado que lo validaste y el coordinador podrá entregarlo al cliente."
+          confirmLabel="Validar"
+          onConfirm={() => run('validate')}
+          disabled={busy}
+        >
+          <CircleCheck />
+          {busy ? 'Validando…' : 'Validar informe'}
+        </ConfirmAction>
+        <ReturnDrawer busy={busy} onReturn={(note) => run('return', { note })} />
         <ErrorMessage>{error}</ErrorMessage>
       </CardContent>
     </Card>
@@ -88,17 +118,22 @@ function ValidateOrReturn({ activity, onChange }) {
 
 function Deliver({ activity, onChange }) {
   const { busy, error, run } = useAction(activity, onChange);
+  const validatedBy = activity.events.findLast((event) => event.type === 'validated')?.user.name ?? 'el CEC';
 
   return (
     <Card>
       <CardContent className="flex flex-col gap-3">
-        <p className="text-muted-foreground">
-          El informe fue validado por {activity.events.findLast((event) => event.type === 'validated')?.user.name ?? 'el CEC'}.
-        </p>
-        <Button size="touch" onClick={() => run('deliver')} disabled={busy}>
+        <p className="text-muted-foreground">El informe fue validado por {validatedBy}.</p>
+        <ConfirmAction
+          title="¿Entregar al cliente?"
+          description={`${activity.company.name} va a poder ver el informe y las fotos, y recibe un aviso.`}
+          confirmLabel="Entregar"
+          onConfirm={() => run('deliver')}
+          disabled={busy}
+        >
           <PackageCheck />
           {busy ? 'Guardando…' : 'Marcar como entregada al cliente'}
-        </Button>
+        </ConfirmAction>
         <ErrorMessage>{error}</ErrorMessage>
       </CardContent>
     </Card>
