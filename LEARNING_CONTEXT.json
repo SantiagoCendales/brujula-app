@@ -1,0 +1,435 @@
+{
+  "proyecto": {
+    "nombre": "Brújula",
+    "descripcion": "App para coordinación y evidencia de servicios técnicos (GPS, cámaras, sensores en vehículos)",
+    "tipo": "Full Stack (Node.js + React)",
+    "estado": "LEVANTADO Y FUNCIONANDO"
+  },
+  
+  "ambiente_local": {
+    "tecnologias": {
+      "backend": {
+        "runtime": "Node.js 26.13.1",
+        "framework": "Express 5",
+        "puerto": 3001,
+        "url": "http://localhost:3001/api"
+      },
+      "frontend": {
+        "framework": "React 19",
+        "bundler": "Vite",
+        "puerto": 5173,
+        "url": "http://localhost:5173"
+      },
+      "base_datos": {
+        "sistema": "PostgreSQL",
+        "contenedor": "Docker",
+        "puerto": 5433,
+        "usuario": "brujula",
+        "password": "brujula",
+        "nombre_bd": "brujula"
+      }
+    },
+    "servicios_corriendo": [
+      "PostgreSQL en Docker (docker compose up -d)",
+      "Express API (npm run dev:server)",
+      "React App (npm run dev:web)"
+    ]
+  },
+
+  "credenciales_demo": {
+    "admin": {
+      "email": "admin@brujula.test",
+      "password": "brujula123",
+      "rol": "admin",
+      "usuario_id": 1,
+      "usuario_nombre": "Ana Admin"
+    },
+    "coordinador": {
+      "email": "coordinador@brujula.test",
+      "password": "brujula123",
+      "rol": "coordinator",
+      "usuario_id": 2,
+      "usuario_nombre": "Carlos Coordinador"
+    },
+    "tecnicos": [
+      {
+        "email": "tecnico1@brujula.test",
+        "usuario_id": 3,
+        "nombre": "Tomás Técnico"
+      },
+      {
+        "email": "tecnico2@brujula.test",
+        "usuario_id": 4,
+        "nombre": "Teresa Técnica"
+      },
+      {
+        "email": "tecnico3@brujula.test",
+        "usuario_id": 5,
+        "nombre": "Tito Técnico"
+      }
+    ],
+    "cec": {
+      "email": "cec@brujula.test",
+      "usuario_id": 6,
+      "nombre": "Celia CEC"
+    },
+    "clientes": [
+      {
+        "email": "cliente.condor@brujula.test",
+        "usuario_id": 7,
+        "nombre": "Camila Cóndor",
+        "empresa": "Transportes Cóndor"
+      },
+      {
+        "email": "cliente.ceiba@brujula.test",
+        "usuario_id": 8,
+        "nombre": "Ciro Ceiba",
+        "empresa": "Distribuidora La Ceiba"
+      }
+    ]
+  },
+
+  "base_datos": {
+    "tablas": {
+      "companies": {
+        "descripcion": "Empresas clientes",
+        "registros": 2,
+        "datos_ejemplo": [
+          {"id": 1, "nombre": "Transportes Cóndor"},
+          {"id": 2, "nombre": "Distribuidora La Ceiba"}
+        ],
+        "columnas_importantes": ["id", "name", "created_at"]
+      },
+      "users": {
+        "descripcion": "Usuarios del sistema",
+        "registros": 8,
+        "roles": ["admin", "coordinator", "technician", "cec", "client"],
+        "datos_resumen": {
+          "admin": 1,
+          "coordinator": 1,
+          "technician": 3,
+          "cec": 1,
+          "client": 2
+        },
+        "columnas_importantes": ["id", "name", "email", "role", "company_id", "password_hash", "active"]
+      },
+      "vehicles": {
+        "descripcion": "Vehículos donde se instalan GPS/cámaras/sensores",
+        "registros": 6,
+        "datos_ejemplo": [
+          {"id": 1, "plate": "DEMO-101", "make": "Toyota", "model": "Hilux"},
+          {"id": 2, "plate": "DEMO-102", "make": "Isuzu", "model": "NPR"}
+        ],
+        "columnas_importantes": ["id", "company_id", "plate", "make", "model", "description"]
+      },
+      "activities": {
+        "descripcion": "Servicios técnicos (instalaciones, mantenimiento, inspecciones)",
+        "registros": 9,
+        "estados": ["requested", "assigned", "on_site", "report_ready", "validated", "returned", "delivered"],
+        "tipos": ["inspection", "gps_install", "camera_install", "sensor_install", "uninstall", "maintenance"],
+        "datos_por_estado": {
+          "requested": 2,
+          "assigned": 2,
+          "on_site": 1,
+          "report_ready": 1,
+          "validated": 1,
+          "delivered": 2
+        },
+        "columnas_importantes": [
+          "id", "company_id", "vehicle_id", "type", "status", "technician_id", "performed_by",
+          "scheduled_for", "arrived_at", "arrival_lat", "arrival_lng", "finished_at",
+          "finish_lat", "finish_lng", "report", "created_at", "updated_at"
+        ]
+      },
+      "photos": {
+        "descripcion": "Fotos de evidencia subidas por técnicos",
+        "registros": "5+",
+        "categorias": ["plate", "odometer", "issue_found", "issue_fixed", "other"],
+        "requisitos": "4 fotos obligatorias para marcar 'Terminé'",
+        "columnas_importantes": ["id", "activity_id", "category", "storage_key", "uploaded_by", "uploaded_at"]
+      },
+      "activity_events": {
+        "descripcion": "Registro inmutable de cambios de estado (audit log)",
+        "registros": "10+",
+        "tipo_eventos": ["created", "assigned", "arrived", "finished", "validated", "returned", "correction", "photo_added", "photo_deleted"],
+        "caracteristica_clave": "Nunca se edita ni se borra",
+        "columnas_importantes": ["id", "activity_id", "user_id", "type", "from_status", "to_status", "note", "created_at"]
+      }
+    }
+  },
+
+  "ciclo_de_vida_activity": {
+    "descripcion": "Cómo progresa un servicio técnico en el sistema",
+    "estados_en_orden": [
+      {
+        "estado": "requested",
+        "quien_puede": "client, coordinator",
+        "significado": "Solicitada",
+        "datos_seteados": ["created_by", "vehicle_id", "type", "description"]
+      },
+      {
+        "estado": "assigned",
+        "quien_puede": "coordinator",
+        "significado": "Asignada a un técnico",
+        "datos_seteados": ["technician_id"]
+      },
+      {
+        "estado": "on_site",
+        "quien_puede": "technician (asignado)",
+        "significado": "Técnico en el sitio",
+        "requisitos": "GPS",
+        "datos_seteados": ["performed_by", "arrived_at", "arrival_lat", "arrival_lng"]
+      },
+      {
+        "estado": "report_ready",
+        "quien_puede": "technician (asignado)",
+        "significado": "Terminado con informe y fotos",
+        "requisitos": "GPS, informe no vacío, 4 fotos obligatorias",
+        "datos_seteados": ["finished_at", "finish_lat", "finish_lng", "report"],
+        "datos_limpiados": ["technician_id = NULL (se libera)"]
+      },
+      {
+        "estado": "validated",
+        "quien_puede": "cec",
+        "significado": "Validado por CEC",
+        "requisitos": "Sin cambios"
+      },
+      {
+        "estado": "returned",
+        "quien_puede": "cec",
+        "significado": "Devuelto para correcciones",
+        "requisitos": "Nota obligatoria",
+        "datos_seteados": ["technician_id = performed_by (vuelve al técnico)"]
+      },
+      {
+        "estado": "delivered",
+        "quien_puede": "coordinator",
+        "significado": "Entregado al cliente",
+        "requisitos": "Sin cambios"
+      }
+    ],
+    "permisos_lectura": {
+      "admin": "Ve TODO",
+      "coordinator": "Ve todas las activities",
+      "cec": "Ve todas las activities",
+      "technician": "Ve solo las que tiene asignadas, las que ejecutó, e historial completo de vehículos asignados",
+      "client": "Ve solo las de su empresa, informe y fotos desde 'report_ready'"
+    },
+    "permisos_escritura": {
+      "admin": "Todo",
+      "coordinator": "Crear, asignar, validar entrega",
+      "cec": "Validar reportes, devolver para correcciones",
+      "technician": "Marcar llegada, terminar, corregir, reenviar",
+      "client": "Solo crear (sin asignar técnico)"
+    }
+  },
+
+  "datos_reales_consultados": {
+    "timestamp": "2026-11-12T15:36:00Z",
+    "query_script": "query_db.js",
+    "resultados": {
+      "users": {
+        "total": 8,
+        "listado": [
+          {"id": 1, "nombre": "Ana Admin", "email": "admin@brujula.test", "role": "admin"},
+          {"id": 2, "nombre": "Carlos Coordinador", "email": "coordinador@brujula.test", "role": "coordinator"},
+          {"id": 3, "nombre": "Tomás Técnico", "email": "tecnico1@brujula.test", "role": "technician"},
+          {"id": 4, "nombre": "Teresa Técnica", "email": "tecnico2@brujula.test", "role": "technician"},
+          {"id": 5, "nombre": "Tito Técnico", "email": "tecnico3@brujula.test", "role": "technician"},
+          {"id": 6, "nombre": "Celia CEC", "email": "cec@brujula.test", "role": "cec"},
+          {"id": 7, "nombre": "Camila Cóndor", "email": "cliente.condor@brujula.test", "role": "client"},
+          {"id": 8, "nombre": "Ciro Ceiba", "email": "cliente.ceiba@brujula.test", "role": "client"}
+        ]
+      },
+      "vehicles": {
+        "total": 6,
+        "listado": [
+          {"id": 1, "plate": "DEMO-101", "make": "Toyota", "model": "Hilux"},
+          {"id": 2, "plate": "DEMO-102", "make": "Isuzu", "model": "NPR"},
+          {"id": 3, "plate": "DEMO-201", "make": "Hino", "model": "Serie 300"},
+          {"id": 4, "plate": "DEMO-202", "make": "Nissan", "model": "Frontier"},
+          {"id": 5, "plate": "DEMO-103", "make": "Mitsubishi", "model": "Canter"},
+          {"id": 6, "plate": "DEMO-203", "make": "Ford", "model": "Ranger"}
+        ]
+      },
+      "activities": {
+        "total": 9,
+        "listado": [
+          {"id": 1, "type": "inspection", "status": "requested", "technician_id": null, "performed_by": null},
+          {"id": 2, "type": "gps_install", "status": "assigned", "technician_id": 3, "performed_by": null},
+          {"id": 3, "type": "camera_install", "status": "assigned", "technician_id": 4, "performed_by": null},
+          {"id": 4, "type": "uninstall", "status": "requested", "technician_id": null, "performed_by": null},
+          {"id": 5, "type": "camera_install", "status": "on_site", "technician_id": 4, "performed_by": 4},
+          {"id": 6, "type": "sensor_install", "status": "report_ready", "technician_id": null, "performed_by": 5},
+          {"id": 7, "type": "maintenance", "status": "validated", "technician_id": null, "performed_by": 3},
+          {"id": 8, "type": "gps_install", "status": "delivered", "technician_id": null, "performed_by": 4},
+          {"id": 9, "type": "inspection", "status": "delivered", "technician_id": null, "performed_by": 3}
+        ]
+      },
+      "photos": {
+        "total": "5+",
+        "categoria_distribucion": {
+          "plate": "múltiples",
+          "odometer": "múltiples",
+          "issue_found": "múltiples",
+          "issue_fixed": "algunas",
+          "other": "algunas"
+        }
+      },
+      "activity_events": {
+        "total": "10+",
+        "tipos_registrados": ["created", "assigned", "arrived"]
+      }
+    }
+  },
+
+  "aprendizaje_completado": {
+    "modulo": 1,
+    "titulo": "La Base de Datos (PostgreSQL + SQL)",
+    "duracion_estimada": "30-45 minutos",
+    "temas_cubiertos": [
+      "¿Qué es una Base de Datos?",
+      "¿Qué es SQL?",
+      "Estructura de las 6 tablas principales",
+      "Enums (valores permitidos)",
+      "Foreign keys (relaciones entre tablas)",
+      "Ciclo de vida de una actividad",
+      "Permisos y visibilidad de datos",
+      "Datos reales del sistema"
+    ],
+    "conceptos_clave": [
+      "Tabla = Hoja de Excel con estructura",
+      "Columna = Campo (id, name, email, etc)",
+      "Fila = Un registro",
+      "ID = Número único (Primary Key)",
+      "Foreign Key = Conexión a otra tabla",
+      "ENUM = Valores permitidos",
+      "Audit Log = Registro inmutable"
+    ],
+    "preguntas_practicas_sugeridas": [
+      "¿Quién es el usuario 4?",
+      "¿Qué actividad está 'on_site' ahora?",
+      "¿Cuántas fotos tiene la actividad #6?",
+      "¿Quién ejecutó la actividad #7?",
+      "¿Qué debería pasar en activity #1 para pasar de 'requested' a 'assigned'?"
+    ]
+  },
+
+  "proximo_aprendizaje": {
+    "modulo": 2,
+    "titulo": "La API (Express + Node.js)",
+    "duracion_estimada": "1-1.5 horas",
+    "temas_a_cubrir": [
+      "¿Qué es Express?",
+      "¿Qué es un endpoint (ruta HTTP)?",
+      "Métodos HTTP: GET, POST, PUT, DELETE",
+      "Cómo funciona POST /auth/login",
+      "JWT - Tokens de autenticación",
+      "Consultas SQL desde Node.js (pg library)",
+      "Validación de permisos en la API",
+      "Respuestas en JSON",
+      "Manejo de errores"
+    ],
+    "ejemplo_primera_leccion": "Seguir un login de punta a punta",
+    "archivos_importantes": [
+      "server/src/index.js (punto de entrada)",
+      "server/src/routes/ (endpoints)",
+      "server/src/middleware/auth.js (autenticación)",
+      "server/src/db/client.js (conexión a BD)"
+    ]
+  },
+
+  "estructura_proyecto": {
+    "raiz": "C:\\Users\\mcord\\OneDrive\\Desktop\\BrujulApp\\brujula-app",
+    "carpetas": {
+      "server": {
+        "descripcion": "Backend (Node.js + Express)",
+        "puerto": 3001,
+        "subcarpetas": {
+          "src": {
+            "index.js": "Punto de entrada de la API",
+            "routes": "Endpoints (login, activities, etc)",
+            "middleware": "Validaciones, autenticación, errores",
+            "db": {
+              "client.js": "Conexión a PostgreSQL",
+              "migrations": "Scripts SQL de creación de tablas",
+              "seed.js": "Carga datos de demo"
+            }
+          },
+          ".env": "Configuración (JWT_SECRET, DATABASE_URL, etc)"
+        }
+      },
+      "web": {
+        "descripcion": "Frontend (React + Vite)",
+        "puerto": 5173,
+        "subcarpetas": {
+          "src": {
+            "components": "Componentes React",
+            "lib": {
+              "api.js": "Funciones para llamar a la API (usar siempre esto, nunca fetch directo)"
+            },
+            "index.css": "Estilos Tailwind y colores del tema"
+          }
+        }
+      },
+      "docs": {
+        "api.md": "Contrato de la API (MUY IMPORTANTE - leer siempre aquí)"
+      }
+    }
+  },
+
+  "convenciones_del_proyecto": {
+    "lenguaje_codigo": "JavaScript ESM (ES Modules), sin TypeScript",
+    "donde_va_el_codigo": {
+      "variables_funciones_archivos": "INGLÉS",
+      "textos_del_usuario": "ESPAÑOL",
+      "commits": "conventional commits: feat:, fix:, docs:"
+    },
+    "base_de_datos": {
+      "nombres": "snake_case (company_id, created_at)",
+      "cambios_esquema": "Nuevas migraciones en server/src/db/migrations/ (nunca editar las existentes)"
+    },
+    "frontend": {
+      "arquitectura": "Mobile-first, una columna, botones grandes",
+      "componentes": "shadcn/ui (base Radix) + Tailwind 4",
+      "colores": "Siempre usar tokens del tema (bg-primary, text-muted-foreground, etc)",
+      "llamadas_api": "SIEMPRE a través de web/src/lib/api.js, NUNCA fetch directo"
+    }
+  },
+
+  "herramientas_disponibles": {
+    "package_manager": "npm (workspaces: server/ y web/)",
+    "comandos_utiles": {
+      "npm_install": "Descargar todas las dependencias",
+      "npm_run_db_migrate": "Crear/actualizar tablas",
+      "npm_run_db_seed": "Cargar datos de demo",
+      "npm_run_dev_server": "Levantar API (terminal dedicada)",
+      "npm_run_dev_web": "Levantar React (terminal dedicada)",
+      "npm_test": "Tests del backend"
+    }
+  },
+
+  "archivos_clave_a_leer": [
+    "README.md - Instrucciones de setup",
+    "docs/api.md - Contrato de endpoints (ESENCIAL)",
+    "AGENTS.md - Reglas del equipo",
+    "server/src/db/migrations/001_initial_schema.sql - Estructura completa de BD",
+    "server/src/index.js - Punto de entrada del backend"
+  ],
+
+  "notas_importantes": {
+    "permisos": "Se revisan en el servidor. No confíes en lo que haga el frontend",
+    "datos_ajenos": "Un usuario NUNCA ve datos de otra empresa o técnico",
+    "respuestas_404": "Lo ajeno responde 404, NO 403 (nunca revelar que existe)",
+    "eventos_inmutables": "activity_events nunca se edita ni se borra",
+    "datos_inventados": "Nada de placas, fotos ni nombres reales en serio"
+  },
+
+  "contexto_estudiante": {
+    "nivel": "Principiante en programación",
+    "conocimientos": ["SQL básico", "Estructura de BD", "Tipos de datos"],
+    "aprendiendo": ["Full Stack", "API REST", "React", "Autenticación"],
+    "modo_estudio": true,
+    "recomendacion": "Explica cada concepto con ejemplos visuales y prácticos"
+  }
+}
