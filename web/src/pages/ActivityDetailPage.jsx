@@ -136,9 +136,9 @@ export default function ActivityDetailPage({ backPath }) {
         </CardHeader>
       </Card>
 
-      <Tabs defaultValue="summary" className="gap-4">
+      <Tabs defaultValue="summary" className="w-full flex flex-col gap-4">
         {tabCount > 1 && (
-          <TabsList className="h-11! w-full">
+          <TabsList className="h-11 w-full justify-start overflow-x-auto">
             <TabsTrigger value="summary">Resumen</TabsTrigger>
             {hasPhotos && <TabsTrigger value="photos">Fotos ({activity.photos.length})</TabsTrigger>}
             {hasEvents && <TabsTrigger value="history">Historial</TabsTrigger>}
