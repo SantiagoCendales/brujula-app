@@ -148,7 +148,7 @@ Las acciones del técnico (Llegué, informe, fotos, Terminé) solo las puede hac
 
 | Método | Ruta | Quién | Recibe | Devuelve |
 |---|---|---|---|---|
-| GET | `/activities?status=&vehicle_id=&technician_id=&view=` | todos, con filtro por rol | Filtros opcionales. `view` es para el técnico: `pending` o `history` | `{ activities: [activity_summary] }` |
+| GET | `/activities?status=&vehicle_id=&technician_id=&view=&plate=` | todos, con filtro por rol | Filtros opcionales. `view` es para el técnico: `pending` o `history`; `plate` busca coincidencias parciales sin distinguir mayúsculas | `{ activities: [activity_summary] }` |
 | GET | `/activities/counts` | todos, con filtro por rol | — | `{ counts: { requested: 2, on_site: 1, … }, total: 9 }`: cantidad por estado, para los filtros |
 | GET | `/activities/:id` | todos, con filtro por rol | — | `{ activity: activity_detail }` |
 | POST | `/activities` | client, coordinator | `{ vehicle_id, type, description?, scheduled_for?, technician_id? }` | `201 { activity }` |

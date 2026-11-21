@@ -1,5 +1,6 @@
 import { HttpError } from '../lib/errors.js';
 import { signedPhotoUrl } from '../lib/photos.js';
+import { escapeLike } from '../lib/validation.js';
 import { activityScope } from './access.js';
 import {
   CLIENT_REPORT_VISIBLE_STATUSES,
@@ -75,6 +76,11 @@ export async function listActivities(db, user, filters = {}) {
     if (filters[column] === undefined) continue;
     params.push(filters[column]);
     conditions.push(`a.${column} = $${params.length}`);
+  }
+
+  if (filters.plate) {
+    params.push(`%${escapeLike(filters.plate.toUpperCase())}%`);
+    conditions.push(`v.plate like $${params.length}`);
   }
 
   if (user.role === 'technician' && filters.view) {

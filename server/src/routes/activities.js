@@ -42,6 +42,7 @@ const listQuerySchema = z.object({
   technician_id: idSchema.optional(),
   company_id: idSchema.optional(),
   view: z.enum(['pending', 'history']).optional(),
+  plate: z.string().trim().max(20).optional(),
 });
 
 activitiesRouter.get('/', async (req, res) => {

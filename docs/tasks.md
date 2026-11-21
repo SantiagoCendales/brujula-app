@@ -1,15 +1,17 @@
-# Tareas del front
+# Tareas del proyecto
 
-Lugar único de las tareas de Sebas. Se actualiza en el mismo commit que el código de cada bloque.
+Lugar único de las tareas del proyecto, que Sebas llevará adelante individualmente después de la hackatón. Incluye trabajo de front, back, base de datos y documentación. Se actualiza en el mismo commit que el código de cada bloque.
 
 **Cómo se usa:**
 - Después de cada `git pull`, leer este archivo: puede haber tareas nuevas o novedades.
-- Al empezar una tarea, moverla a **🔄 En curso**. Al terminarla, a **✅ Hechas** con un commit que diga `feat: ... (T6)`.
-- Una tarea está terminada cuando cumple su "Terminado cuando", se ve bien con ancho de celular (Chrome → DevTools → modo dispositivo), no hay errores en la consola y está pusheada.
-- Si una tarea necesita algo que no está en la API o en `docs/api.md`, anotarlo en **❓ Preguntas** y avisarle a Santiago.
+- Trabajar una tarea a la vez: al empezarla, moverla a **🔄 En curso**; al terminarla, pasarla a **✅ Hechas**.
+- Una tarea está terminada cuando cumple sus criterios, las pruebas correspondientes pasan y la documentación relacionada está actualizada.
+- Para cambios de front, revisar la pantalla con ancho de celular (Chrome → DevTools → modo dispositivo) y confirmar que no haya errores en la consola.
+- Si una decisión o dependencia bloquea una tarea, anotarla en **❓ Preguntas** antes de avanzar con una suposición.
 
 ## 📣 Novedades que afectan al front
 
+- **[desarrollo]** Vite también acepta túneles de ngrok con dominios `ngrok-free.dev`, además de `ngrok-free.app`.
 - **[componentes]** Nuevos componentes reutilizables en `web/src/components/`: `ScheduleField` (fecha con calendario y hora con dos selectores), `VehicleCombobox` (buscador de vehículo por placa), `ActivityTypePicker` (tipo de servicio con íconos), `TechnicianDrawer` (panel desde abajo para elegir técnico) y `ConfirmAction` (botón que pide confirmación). Ejemplos en `pages/NewActivityPage.jsx` y `execution/`.
 - **[componentes]** Nuevos de shadcn en `components/ui/`: `Calendar`, `Popover`, `Command`, `ToggleGroup`, `AlertDialog`, `Drawer` (panel que sube desde abajo, como "Asignar técnico") y `Tabs` (el detalle ahora tiene Resumen / Fotos / Historial). Tu `PhotoGrid` (T12) va en la pestaña **Fotos** de `pages/ActivityDetailPage.jsx`.
 - **[componentes]** Hay dependencias nuevas: después del `git pull`, correr `npm install`.
@@ -39,7 +41,26 @@ Lugar único de las tareas de Sebas. Se actualiza en el mismo commit que el cód
 
 ## 🔜 Para hacer
 
-Todos van en `web/src/components/`, se arman con los componentes de `components/ui/` y son de presentación: reciben datos por props y **no llaman a la API** (Santiago los conecta). Cada uno tiene una versión provisoria en las páginas, marcada con `TODO(T…)`: mirala, entendé qué hace y sacala a su propio componente, más prolija.
+### Ideas para después de la hackatón
+
+Abordarlas de a una, actualizando su estado aquí antes de empezar.
+
+- [ ] **Firma digital del cliente:** permitir que el cliente firme el recibido de la actividad realizada.
+- [ ] **Historial de notificaciones:** agregar una pestaña con el historial de novedades, disponible para todos los roles.
+- [ ] **Permisos por rol:** permitir que Admin y Coordinador configuren los permisos de cada rol.
+- [ ] **Novedades de la actividad:** agregar un campo para registrar las novedades de cada labor.
+- [ ] **Devoluciones internas:** ocultar al cliente la pestaña Vuelta y las devoluciones internas; mostrarle la actividad cuando esté completamente validada.
+- [ ] **Características de vehículos:** mostrar los datos del vehículo, incluida la placa, en la pestaña Vehículos para todos los roles.
+- [ ] **Llegada y salida del técnico:** mostrar a Cliente, Admin y Coordinador cuándo el técnico llegó y salió de la actividad.
+- [ ] **Preferencias de notificaciones:** agregar Configuración para que cada usuario elija qué notificaciones recibe.
+- [ ] **Visibilidad del informe:** evitar que el cliente vea que el informe está completo antes de que todo haya sido validado.
+- [ ] **Vehículos agrupados:** en las vistas de Admin y Coordinador, organizar los vehículos por cliente y luego por placa.
+- [ ] **Solicitud de nueva placa:** impedir que el cliente cree vehículos directamente; permitirle solicitar una placa nueva y crear el vehículo en el sistema una vez validada la solicitud.
+- [ ] **Datos de la solicitud:** pedir lugar, fecha y hora al cliente al crear una solicitud de nueva placa.
+
+### Componentes de front pendientes
+
+Los componentes van en `web/src/components/`, se arman con los componentes de `components/ui/` y son de presentación: reciben datos por props y no llaman a la API. Cada uno tiene una versión provisoria en las páginas, marcada con `TODO(T…)`: revisarla y extraerla a su propio componente.
 
 ## 🔄 En curso
 
@@ -47,6 +68,7 @@ _(nada)_
 
 ## ✅ Hechas
 
+- **Historial por placa:** todos los roles pueden buscar por coincidencia parcial de placa en sus listas de actividades; el técnico también en "Mi historial". Los demás roles pueden consultar el historial del vehículo desde la pestaña Vehículos.
 - **T12 · `PhotoGrid`:** conectado en `ActivityDetailPage` y `PhotosStep`, probado en `/status` en móvil.
 - **T11 · `ReportField`:** conectado en `ReportAndFinishStep` y probado en `/status` en móvil.
 - **T10 · `PhotoChecklist`:** conectado en `PhotosStep` y probado en `/status` en móvil.

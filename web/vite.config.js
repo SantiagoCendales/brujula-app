@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173,
       // Lets the dev server be opened through an ngrok tunnel (HTTPS, needed for camera and GPS on a phone).
-      allowedHosts: ['.ngrok-free.app'],
+      allowedHosts: ['.ngrok-free.app', '.ngrok-free.dev'],
       // CORS is answered by the API (through the proxy below), not by Vite, so there is a single source of truth.
       cors: false,
       // In development, /api calls are proxied to the Express server.
