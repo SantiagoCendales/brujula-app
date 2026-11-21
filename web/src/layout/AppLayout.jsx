@@ -1,13 +1,18 @@
-import { LogOut } from 'lucide-react';
+import { Bell, LogOut } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router';
 import { useAuth } from '@/auth/AuthContext';
 import { homePathFor } from '@/auth/roles';
 import BrujulaLogo from '@/components/BrujulaLogo';
+import ErrorMessage from '@/components/ErrorMessage';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Toaster } from '@/components/ui/sonner';
 import ActivityNotifier from '@/layout/ActivityNotifier';
+import NotificationsPanel from '@/layout/NotificationsPanel';
 import { ROLE_LABELS } from '@/lib/labels';
-import { useLiveStatus } from '@/lib/liveUpdates';
+import { useActivityChanges, useLiveStatus } from '@/lib/liveUpdates';
+import { useApi } from '@/lib/useApi';
 
 const TABS = {
   coordinator: [
@@ -54,6 +59,44 @@ function NavTabs({ role }) {
   );
 }
 
+function NotificationsButton() {
+  const { pathname } = useLocation();
+  const [open, setOpen] = useState(false);
+  const { data, error, reload } = useApi('/notifications/unread-count');
+  useActivityChanges(reload);
+  useEffect(() => { reload(); }, [pathname, reload]);
+
+  function closeAfterRead() {
+    setOpen(false);
+    reload();
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon-lg"
+          className="relative size-12 text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground"
+          aria-label={data?.count ? `Notificaciones, ${data.count} sin leer` : 'Notificaciones'}
+        >
+          <Bell />
+          {data?.count > 0 && (
+            <span className="absolute top-0 right-0 rounded-full bg-destructive px-1 text-xs text-destructive-foreground">
+              {data.count > 99 ? '99+' : data.count}
+            </span>
+          )}
+          {error && <span className="sr-only">No se pudo cargar el contador.</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-[min(22rem,calc(100vw-2rem))]">
+        <ErrorMessage>{error?.message}</ErrorMessage>
+        <NotificationsPanel onOpenActivity={closeAfterRead} />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 function LiveIndicator() {
   const status = useLiveStatus();
   const isLive = status === 'live';
@@ -72,7 +115,7 @@ export default function AppLayout() {
   return (
     <div className="mx-auto min-h-dvh max-w-md">
       <div className="sticky top-0 z-10 shadow-sm">
-        <header className="flex items-center justify-between bg-primary px-4 py-3 text-primary-foreground">
+        <header className="flex items-center justify-between bg-primary px-4 pt-[calc(0.75rem+var(--safe-area-inset-top,env(safe-area-inset-top,0px)))] pb-3 text-primary-foreground">
           <Link to={homePathFor(user.role)} className="flex items-center gap-3">
             <BrujulaLogo className="size-9 shrink-0" />
             <div>
@@ -84,22 +127,29 @@ export default function AppLayout() {
               </p>
             </div>
           </Link>
-          <Button
-            variant="ghost"
-            size="lg"
-            onClick={logout}
-            className="text-primary-foreground hover:bg-white/15 hover:text-primary-foreground"
-          >
-            <LogOut />
-            Salir
-          </Button>
+          <div className="flex items-center">
+            <NotificationsButton />
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={logout}
+              className="text-primary-foreground hover:bg-white/15 hover:text-primary-foreground"
+            >
+              <LogOut />
+              Salir
+            </Button>
+          </div>
         </header>
         <NavTabs role={user.role} />
       </div>
-      <main className="p-4">
+      <main className="p-4 pb-[calc(1rem+var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)))]">
         <Outlet />
       </main>
-      <Toaster position="top-center" offset={{ top: 16 }} mobileOffset={{ top: 12, left: 12, right: 12 }} />
+      <Toaster
+        position="top-center"
+        offset={{ top: 'calc(1rem + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))' }}
+        mobileOffset={{ top: 'calc(0.75rem + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)))', left: 12, right: 12 }}
+      />
       <ActivityNotifier />
     </div>
   );

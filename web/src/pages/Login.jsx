@@ -46,7 +46,7 @@ export default function Login() {
 
   return (
     <div className="min-h-dvh bg-linear-to-b from-primary/15 via-background to-background">
-      <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 p-6">
+      <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 p-6 pt-[calc(1.5rem+var(--safe-area-inset-top,env(safe-area-inset-top,0px)))] pb-[calc(1.5rem+var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)))]">
         <header className="flex flex-col items-center text-center">
           <div className="flex size-20 items-center justify-center rounded-3xl bg-primary text-primary-foreground shadow-lg shadow-primary/30">
             <BrujulaLogo className="size-12" />

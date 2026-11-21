@@ -142,6 +142,18 @@ El token dura 12 horas.
 
 La placa se guarda en mayúsculas y es única.
 
+### Notificaciones ✅
+
+Se conservan por usuario desde la activación de la función, con las reglas de los avisos actuales; no se reconstruyen notificaciones anteriores. Solo aparecen mientras el usuario tenga permiso para ver la actividad, y las acciones propias no generan avisos para el actor.
+
+| Método | Ruta | Devuelve |
+|---|---|---|
+| GET | `/notifications?before=123` | `{ notifications, has_more }`: hasta 50 avisos, del más reciente al más antiguo; `before` es el id del último aviso de la página anterior |
+| GET | `/notifications/unread-count` | `{ count }`: cantidad de avisos no leídos visibles |
+| POST | `/notifications/:id/read` | `{ ok: true }`: marca como leído un aviso propio y visible; uno ajeno o inaccesible responde 404 |
+
+Cada aviso incluye `id`, `read_at`, `type`, `created_at`, `activity_id`, `actor_name`, `plate` y `activity_type`.
+
 ### Actividades ✅
 
 Las acciones del técnico (Llegué, informe, fotos, Terminé) solo las puede hacer **el técnico que tiene la actividad ahora**. Otro técnico que la ve por historial recibe `403 forbidden`.

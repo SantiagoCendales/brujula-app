@@ -45,7 +45,6 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 
 Abordarlas de a una, actualizando su estado aquí antes de empezar.
 
-- [ ] **Historial de notificaciones:** agregar una pestaña con el historial de novedades, disponible para todos los roles.
 - [ ] **Permisos por rol:** permitir que Admin y Coordinador configuren los permisos de cada rol.
 - [ ] **Novedades de la actividad:** agregar un campo para registrar las novedades de cada labor.
 - [ ] **Devoluciones internas:** ocultar al cliente la pestaña Vuelta y las devoluciones internas; mostrarle la actividad cuando esté completamente validada.
@@ -67,6 +66,8 @@ _(nada)_
 
 ## ✅ Hechas
 
+- **Historial de notificaciones:** los avisos se conservan por usuario desde su activación y se consultan desde la campanita del encabezado, con indicador de no leídas.
+- **Áreas seguras en Android:** el encabezado y el inicio de sesión respetan la cámara frontal y las barras del sistema.
 - **Firma de recibido:** el técnico puede registrar una firma manuscrita con nombre y documento de quien recibe, o dejar constancia de que no había nadie. Es opcional, no se puede reemplazar y fue probada en celular.
 - **Historial por placa:** todos los roles pueden buscar por coincidencia parcial de placa en sus listas de actividades; el técnico también en "Mi historial". Los demás roles pueden consultar el historial del vehículo desde la pestaña Vehículos.
 - **T12 · `PhotoGrid`:** conectado en `ActivityDetailPage` y `PhotosStep`, probado en `/status` en móvil.

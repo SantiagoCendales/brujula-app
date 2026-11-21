@@ -2,6 +2,7 @@ import { HttpError } from '../lib/errors.js';
 import { signedPhotoUrl } from '../lib/photos.js';
 import { escapeLike } from '../lib/validation.js';
 import { activityScope } from './access.js';
+import { createNotifications } from './notifications.js';
 import {
   CLIENT_REPORT_VISIBLE_STATUSES,
   REQUIRED_PHOTOS,
@@ -145,11 +146,12 @@ export async function getActivityDetail(db, id, user) {
 }
 
 export async function recordEvent(db, { activityId, userId, type, fromStatus = null, toStatus = null, note = null, data = null }) {
-  await db.query(
+  const { rows } = await db.query(
     `insert into activity_events (activity_id, user_id, type, from_status, to_status, note, data)
-     values ($1, $2, $3, $4, $5, $6, $7)`,
+     values ($1, $2, $3, $4, $5, $6, $7) returning id`,
     [activityId, userId, type, fromStatus, toStatus, note, data],
   );
+  await createNotifications(db, { eventId: rows[0].id, activityId, userId, type });
 }
 
 // Use as a value in `changes` to store the server's clock, never the device's.
