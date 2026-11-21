@@ -187,6 +187,43 @@ activitiesRouter.post('/:id/arrive', requireRole('technician'), async (req, res)
 
 const reportSchema = z.object({ report: z.string().max(MAX_REPORT_LENGTH) });
 
+const pointSchema = z.tuple([z.number().int().min(0).max(1000), z.number().int().min(0).max(1000)]);
+const receiptSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('signed'),
+    signer_name: z.string().trim().min(1).max(120),
+    signer_document: z.string().trim().min(1).max(50),
+    signature: z.array(z.array(pointSchema).min(2).max(2000)).min(1).max(100).refine(
+      (strokes) => strokes.reduce((total, stroke) => total + stroke.length, 0) <= 4000 &&
+        strokes.some((stroke) => stroke.some(([x, y]) => x !== stroke[0][0] || y !== stroke[0][1])),
+      'La firma debe contener trazos y no superar el límite permitido',
+    ),
+  }).strict(),
+  z.object({ kind: z.literal('nobody_present') }).strict(),
+]);
+
+activitiesRouter.post('/:id/receipt', requireRole('technician'), async (req, res) => {
+  const id = validate(idSchema, req.params.id);
+  const receipt = validate(receiptSchema, req.body);
+  ensureHolder(await findVisibleActivity(pool, id, req.user), req.user);
+
+  await withTransaction(async (db) => {
+    const activity = await lockActivity(db, id);
+    ensureHolder(activity, req.user);
+    if (activity.status !== 'on_site') throw invalidStatus(activity.status);
+    const { rows } = await db.query('select 1 from activity_receipts where activity_id = $1', [id]);
+    if (rows.length) throw new HttpError(409, 'duplicate', 'Ya existe una constancia de recibido');
+    await db.query(
+      `insert into activity_receipts (activity_id, kind, signer_name, signer_document, signature, recorded_by)
+       values ($1, $2, $3, $4, $5, $6)`,
+      [id, receipt.kind, receipt.signer_name ?? null, receipt.signer_document ?? null,
+        receipt.signature ? JSON.stringify(receipt.signature) : null, req.user.id],
+    );
+    await recordEvent(db, { activityId: id, userId: req.user.id, type: 'receipt_recorded', data: { kind: receipt.kind } });
+  });
+  await respondAfterChange(res, id, req.user, 'receipt_recorded', { status: 201 });
+});
+
 activitiesRouter.patch('/:id/report', requireRole('technician'), async (req, res) => {
   const id = validate(idSchema, req.params.id);
   const { report } = validate(reportSchema, req.body);

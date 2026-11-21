@@ -5,6 +5,7 @@ import { useAuth } from '@/auth/AuthContext';
 import ErrorMessage from '@/components/ErrorMessage';
 import EventTimeline from '@/components/EventTimeline';
 import PhotoGrid from '@/components/PhotoGrid';
+import ReceiptCard from '@/components/ReceiptCard';
 import StatusBadge from '@/components/StatusBadge';
 import TechnicianDrawer from '@/components/TechnicianDrawer';
 import { Button } from '@/components/ui/button';
@@ -166,6 +167,7 @@ export default function ActivityDetailPage({ backPath }) {
 
           {canAssign && <AssignDrawer activity={activity} onAssigned={setData} />}
           {isHolder && <TechnicianActions activity={activity} onChange={setActivity} />}
+          <ReceiptCard receipt={activity.receipt} />
           <ReviewActions activity={activity} role={user.role} onChange={setActivity} />
 
           {!isCapturing && activity.report && (

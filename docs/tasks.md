@@ -45,7 +45,6 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 
 Abordarlas de a una, actualizando su estado aquí antes de empezar.
 
-- [ ] **Firma digital del cliente:** permitir que el cliente firme el recibido de la actividad realizada.
 - [ ] **Historial de notificaciones:** agregar una pestaña con el historial de novedades, disponible para todos los roles.
 - [ ] **Permisos por rol:** permitir que Admin y Coordinador configuren los permisos de cada rol.
 - [ ] **Novedades de la actividad:** agregar un campo para registrar las novedades de cada labor.
@@ -68,6 +67,7 @@ _(nada)_
 
 ## ✅ Hechas
 
+- **Firma de recibido:** el técnico puede registrar una firma manuscrita con nombre y documento de quien recibe, o dejar constancia de que no había nadie. Es opcional, no se puede reemplazar y fue probada en celular.
 - **Historial por placa:** todos los roles pueden buscar por coincidencia parcial de placa en sus listas de actividades; el técnico también en "Mi historial". Los demás roles pueden consultar el historial del vehículo desde la pestaña Vehículos.
 - **T12 · `PhotoGrid`:** conectado en `ActivityDetailPage` y `PhotosStep`, probado en `/status` en móvil.
 - **T11 · `ReportField`:** conectado en `ReportAndFinishStep` y probado en `/status` en móvil.

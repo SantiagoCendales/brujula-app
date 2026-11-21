@@ -8,6 +8,7 @@ import ReportField from '@/components/ReportField';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import ReceiptStep from '@/execution/ReceiptStep';
 import { request } from '@/lib/api';
 import { compressImage, getLocation, isNativeApp, takeNativePhoto } from '@/lib/device';
 import { formatDateTime } from '@/lib/format';
@@ -235,6 +236,7 @@ export default function TechnicianActions({ activity, onChange }) {
       <>
         {activity.status === 'returned' && <ReturnedNotice activity={activity} />}
         <PhotosStep activity={activity} onChange={onChange} />
+        {activity.status === 'on_site' && !activity.receipt && <ReceiptStep activity={activity} onChange={onChange} />}
         <ReportAndFinishStep activity={activity} onChange={onChange} />
       </>
     );

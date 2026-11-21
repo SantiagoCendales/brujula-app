@@ -112,6 +112,11 @@ export async function getActivityDetail(db, id, user) {
   const isClient = user.role === 'client';
   const reportVisible = !isClient || CLIENT_REPORT_VISIBLE_STATUSES.includes(row.status);
 
+  const { rows: receipts } = await db.query(
+    `select r.kind, r.signer_name, r.signer_document, r.signature, r.created_at, u.name as recorded_by
+     from activity_receipts r join users u on u.id = r.recorded_by where r.activity_id = $1`,
+    [id],
+  );
   const photos = reportVisible
     ? (await db.query('select * from photos where activity_id = $1 order by uploaded_at, id', [id])).rows
     : [];
@@ -132,6 +137,7 @@ export async function getActivityDetail(db, id, user) {
     arrival: location(row.arrived_at, row.arrival_lat, row.arrival_lng, row.arrival_accuracy_m),
     finish: location(row.finished_at, row.finish_lat, row.finish_lng, row.finish_accuracy_m),
     report: reportVisible ? row.report : null,
+    receipt: receipts[0] ?? null,
     photos: photos.map(toPhoto),
     missing_photos: isClient ? [] : REQUIRED_PHOTOS.filter((category) => !photoCategories.has(category)),
     events: events.map(toEvent),

@@ -155,6 +155,7 @@ Las acciones del técnico (Llegué, informe, fotos, Terminé) solo las puede hac
 | POST | `/activities/:id/assign` | coordinator | `{ technician_id }` | `{ activity }` |
 | POST | `/activities/:id/arrive` | técnico que la tiene | `{ lat, lng, accuracy_m? }` | `{ activity }` |
 | PATCH | `/activities/:id/report` | técnico que la tiene, en `on_site` | `{ report }` (hasta 10.000 caracteres) | `{ activity }` |
+| POST | `/activities/:id/receipt` | técnico que la tiene, en `on_site` | `{ kind: "signed", signer_name, signer_document, signature }` o `{ kind: "nobody_present" }` | `201 { activity }`; una sola constancia por actividad |
 | POST | `/activities/:id/photos` | técnico que la tiene, en `on_site` | `multipart/form-data`: `photo` (archivo) + `category` | `201 { photo_id, activity }` |
 | POST | `/activities/:id/finish` | técnico que la tiene | `{ lat, lng, accuracy_m? }` | `{ activity }` o `422` |
 | POST | `/activities/:id/validate` | cec | — | `{ activity }` |
@@ -169,6 +170,8 @@ Las acciones del técnico (Llegué, informe, fotos, Terminé) solo las puede hac
 El informe y las fotos se pueden editar en `on_site` y en `returned`. La nota de una devolución está en el evento `returned` (`events[].note`).
 
 Las acciones devuelven la actividad completa ya actualizada: el front reemplaza lo que tiene, sin volver a pedirla.
+
+La constancia de recibido es opcional y no modifica el estado de la actividad. En una firma, `signature` es una lista de trazos, cada uno una lista de puntos `[x, y]` enteros entre 0 y 1000; `signer_name` y `signer_document` identifican a la persona presente. El técnico registra la constancia antes de terminar; no se puede modificar ni reemplazar. Es una firma manuscrita capturada en pantalla, no una firma criptográfica ni una autenticación del cliente. El detalle incluye `receipt` (o `null`) con `kind`, datos de la firma cuando existan, `recorded_by` y `created_at`; se muestra únicamente a usuarios autorizados a ver la actividad.
 
 ```json
 "activity_summary": {
@@ -223,7 +226,7 @@ event: activity.changed
 data: {"type":"activity.changed","activity_id":12,"status":"on_site","change":"arrived","actor_id":3,"technician_id":3}
 ```
 
-- `change`: qué pasó (`created`, `assigned`, `arrived`, `report_updated`, `photo_added`, `photo_deleted`, `finished`, `validated`, `returned`, `resubmitted`, `delivered`).
+- `change`: qué pasó (`created`, `assigned`, `arrived`, `report_updated`, `photo_added`, `photo_deleted`, `receipt_recorded`, `finished`, `validated`, `returned`, `resubmitted`, `delivered`).
 - `actor_id`: quién lo hizo. La app no le muestra notificaciones a nadie por sus propias acciones.
 - `technician_id`: quién la tiene ahora (o `null`).
 

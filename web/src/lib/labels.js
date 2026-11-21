@@ -34,6 +34,7 @@ export const EVENT_TYPE_LABELS = {
   correction: 'Informe corregido',
   photo_added: 'Foto agregada',
   photo_deleted: 'Foto eliminada',
+  receipt_recorded: 'Constancia de recibido registrada',
 };
 
 export function eventLabel(event) {
