@@ -1,4 +1,4 @@
-import { Bell, LogOut } from 'lucide-react';
+import { Bell, LogOut, Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router';
 import { useAuth } from '@/auth/AuthContext';
@@ -38,7 +38,8 @@ function NavTabs({ role }) {
   const { pathname } = useLocation();
   const tabs = TABS[role] ?? [];
   // The longest matching prefix wins, so /coordinator/vehicles/3 lights "Vehículos" and /coordinator/activities/3 "Actividades".
-  const active = tabs
+  const isSettings = pathname === '/coordinator/settings' || pathname === '/coordinator/permissions';
+  const active = isSettings ? undefined : tabs
     .filter((tab) => pathname.startsWith(tab.to))
     .sort((first, second) => second.to.length - first.to.length)[0];
 
@@ -116,27 +117,32 @@ export default function AppLayout() {
     <div className="mx-auto min-h-dvh max-w-md">
       <div className="sticky top-0 z-10 shadow-sm">
         <header className="flex items-center justify-between bg-primary px-4 pt-[calc(0.75rem+var(--safe-area-inset-top,env(safe-area-inset-top,0px)))] pb-3 text-primary-foreground">
-          <Link to={homePathFor(user.role)} className="flex items-center gap-3">
+          <Link to={homePathFor(user.role)} className="flex min-w-0 items-center gap-3">
             <BrujulaLogo className="size-9 shrink-0" />
-            <div>
+            <div className="min-w-0">
               <p className="flex items-center gap-2 font-bold">
                 Brújula <LiveIndicator />
               </p>
-              <p className="text-sm opacity-90">
+              <p className="truncate text-sm opacity-90">
                 {user.name} · {ROLE_LABELS[user.role]}
               </p>
             </div>
           </Link>
           <div className="flex items-center">
             <NotificationsButton />
+            {['admin', 'coordinator'].includes(user.role) && (
+              <Button asChild variant="ghost" size="icon-lg" className="size-12 text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground">
+                <Link to="/coordinator/settings" aria-label="Configuración"><Settings /></Link>
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="lg"
               onClick={logout}
-              className="text-primary-foreground hover:bg-white/15 hover:text-primary-foreground"
+              aria-label="Salir"
+              className="size-12 text-primary-foreground hover:bg-white/15 hover:text-primary-foreground"
             >
               <LogOut />
-              Salir
             </Button>
           </div>
         </header>

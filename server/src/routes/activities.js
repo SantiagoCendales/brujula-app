@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { Router } from 'express';
 import multer from 'multer';
 import { z } from 'zod';
-import { authenticate, requireRole } from '../auth/middleware.js';
+import { authenticate, ensurePermission, requireRole } from '../auth/middleware.js';
 import { pool, withTransaction } from '../db/pool.js';
 import { activityScope, vehicleScope } from '../domain/access.js';
 import {
@@ -91,6 +91,8 @@ activitiesRouter.post('/', requireRole('client', 'coordinator', 'admin'), async 
   const vehicle = vehicles[0];
   if (!vehicle) throw new HttpError(404, 'not_found', 'Vehículo no encontrado');
 
+  await ensurePermission(user, 'create_activity');
+  if (data.technician_id) await ensurePermission(user, 'assign_technician');
   if (data.technician_id) await ensureActiveTechnician(pool, data.technician_id);
 
   const activityId = await withTransaction(async (db) => {
@@ -133,6 +135,7 @@ activitiesRouter.post('/:id/assign', requireRole('coordinator', 'admin'), async 
   const { technician_id: technicianId } = validate(assignSchema, req.body);
 
   const { technician_id: previousTechnicianId } = await findVisibleActivity(pool, id, req.user);
+  await ensurePermission(req.user, 'assign_technician');
   await ensureActiveTechnician(pool, technicianId);
   await withTransaction((db) =>
     transition(db, {
@@ -164,7 +167,9 @@ async function respondAfterChange(res, activityId, user, change, { status = 200,
 activitiesRouter.post('/:id/arrive', requireRole('technician'), async (req, res) => {
   const id = validate(idSchema, req.params.id);
   const coordinates = validate(coordinatesSchema, req.body);
-  ensureHolder(await findVisibleActivity(pool, id, req.user), req.user);
+  const activity = await findVisibleActivity(pool, id, req.user);
+  await ensurePermission(req.user, 'record_field_work');
+  ensureHolder(activity, req.user);
 
   await withTransaction((db) =>
     transition(db, {
@@ -205,7 +210,9 @@ const receiptSchema = z.discriminatedUnion('kind', [
 activitiesRouter.post('/:id/receipt', requireRole('technician'), async (req, res) => {
   const id = validate(idSchema, req.params.id);
   const receipt = validate(receiptSchema, req.body);
-  ensureHolder(await findVisibleActivity(pool, id, req.user), req.user);
+  const visible = await findVisibleActivity(pool, id, req.user);
+  await ensurePermission(req.user, 'record_field_work');
+  ensureHolder(visible, req.user);
 
   await withTransaction(async (db) => {
     const activity = await lockActivity(db, id);
@@ -227,7 +234,9 @@ activitiesRouter.post('/:id/receipt', requireRole('technician'), async (req, res
 activitiesRouter.patch('/:id/report', requireRole('technician'), async (req, res) => {
   const id = validate(idSchema, req.params.id);
   const { report } = validate(reportSchema, req.body);
-  ensureHolder(await findVisibleActivity(pool, id, req.user), req.user);
+  const visible = await findVisibleActivity(pool, id, req.user);
+  await ensurePermission(req.user, 'record_field_work');
+  ensureHolder(visible, req.user);
 
   await withTransaction(async (db) => {
     const activity = await lockActivity(db, id);
@@ -254,6 +263,7 @@ const upload = multer({
 async function loadActivityForUpload(req, _res, next) {
   const id = validate(idSchema, req.params.id);
   const activity = await findVisibleActivity(pool, id, req.user);
+  await ensurePermission(req.user, 'record_field_work');
   ensureHolder(activity, req.user);
   if (!TECHNICIAN_EDITABLE_STATUSES.includes(activity.status)) throw invalidStatus(activity.status);
   req.activity = activity;
@@ -313,7 +323,9 @@ activitiesRouter.post(
 activitiesRouter.post('/:id/finish', requireRole('technician'), async (req, res) => {
   const id = validate(idSchema, req.params.id);
   const coordinates = validate(coordinatesSchema, req.body);
-  ensureHolder(await findVisibleActivity(pool, id, req.user), req.user);
+  const visible = await findVisibleActivity(pool, id, req.user);
+  await ensurePermission(req.user, 'finish_report');
+  ensureHolder(visible, req.user);
 
   await withTransaction(async (db) => {
     const activity = await lockActivity(db, id);
@@ -340,6 +352,7 @@ activitiesRouter.post('/:id/finish', requireRole('technician'), async (req, res)
 activitiesRouter.post('/:id/validate', requireRole('cec', 'admin'), async (req, res) => {
   const id = validate(idSchema, req.params.id);
   await findVisibleActivity(pool, id, req.user);
+  await ensurePermission(req.user, 'review_report');
   await withTransaction((db) =>
     transition(db, { activityId: id, userId: req.user.id, from: ['report_ready'], to: 'validated', type: 'validated' }),
   );
@@ -353,6 +366,7 @@ activitiesRouter.post('/:id/return', requireRole('cec', 'admin'), async (req, re
   const id = validate(idSchema, req.params.id);
   const { note } = validate(returnSchema, req.body);
   const activity = await findVisibleActivity(pool, id, req.user);
+  await ensurePermission(req.user, 'review_report');
   await withTransaction((db) =>
     transition(db, {
       activityId: id,
@@ -370,7 +384,9 @@ activitiesRouter.post('/:id/return', requireRole('cec', 'admin'), async (req, re
 // No GPS here: corrections can be made away from the site. The original arrival and finish stay as evidence.
 activitiesRouter.post('/:id/resubmit', requireRole('technician'), async (req, res) => {
   const id = validate(idSchema, req.params.id);
-  ensureHolder(await findVisibleActivity(pool, id, req.user), req.user);
+  const visible = await findVisibleActivity(pool, id, req.user);
+  await ensurePermission(req.user, 'finish_report');
+  ensureHolder(visible, req.user);
 
   await withTransaction(async (db) => {
     const activity = await lockActivity(db, id);
@@ -391,6 +407,7 @@ activitiesRouter.post('/:id/resubmit', requireRole('technician'), async (req, re
 activitiesRouter.post('/:id/deliver', requireRole('coordinator', 'admin'), async (req, res) => {
   const id = validate(idSchema, req.params.id);
   await findVisibleActivity(pool, id, req.user);
+  await ensurePermission(req.user, 'deliver_report');
   await withTransaction((db) =>
     transition(db, { activityId: id, userId: req.user.id, from: ['validated'], to: 'delivered', type: 'delivered' }),
   );

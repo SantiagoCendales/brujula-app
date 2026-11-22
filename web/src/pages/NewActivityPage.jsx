@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import VehicleCombobox from '@/components/VehicleCombobox';
 import { request } from '@/lib/api';
 import { useApi } from '@/lib/useApi';
+import { usePermissions } from '@/lib/usePermissions';
 
 function Field({ id, label, children }) {
   return (
@@ -28,8 +29,11 @@ export default function NewActivityPage({ basePath }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isCoordinator = ['coordinator', 'admin'].includes(user.role);
+  const access = usePermissions();
+  const canCreate = access.permissions.includes('create_activity');
+  const canAssign = isCoordinator && access.permissions.includes('assign_technician');
   const vehicles = useApi('/vehicles');
-  const technicians = useApi(isCoordinator ? '/users?role=technician' : null);
+  const technicians = useApi(canAssign ? '/users?role=technician' : null);
 
   const [vehicleId, setVehicleId] = useState(null);
   const [type, setType] = useState('');
@@ -50,7 +54,7 @@ export default function NewActivityPage({ basePath }) {
     const body = { vehicle_id: vehicleId, type, description };
     if (isCoordinator) {
       body.scheduled_for = scheduledFor?.toISOString() ?? null;
-      body.technician_id = technicianId;
+      if (canAssign) body.technician_id = technicianId;
     }
     try {
       const { activity } = await request('/activities', { method: 'POST', body });
@@ -70,8 +74,10 @@ export default function NewActivityPage({ basePath }) {
         </Link>
       </Button>
       <h1 className="text-xl font-semibold">{isCoordinator ? 'Nueva actividad' : 'Nueva solicitud'}</h1>
+      <ErrorMessage>{access.error?.message}</ErrorMessage>
+      {!access.loading && !access.error && !canCreate && <ErrorMessage>Tu rol no tiene permiso para crear actividades.</ErrorMessage>}
 
-      <Card>
+      {canCreate && <Card>
         <CardContent>
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <Field id="vehicle" label="Vehículo">
@@ -105,7 +111,7 @@ export default function NewActivityPage({ basePath }) {
                 <Field label="Fecha programada">
                   <ScheduleField value={scheduledFor} onChange={setScheduledFor} />
                 </Field>
-                <Field label="Técnico">
+                {canAssign && <Field label="Técnico">
                   <div className="flex gap-2">
                     <TechnicianDrawer
                       technicians={technicianList}
@@ -142,7 +148,7 @@ export default function NewActivityPage({ basePath }) {
                       </Button>
                     )}
                   </div>
-                </Field>
+                </Field>}
               </>
             )}
 
@@ -153,7 +159,7 @@ export default function NewActivityPage({ basePath }) {
             </Button>
           </form>
         </CardContent>
-      </Card>
+      </Card>}
     </section>
   );
 }

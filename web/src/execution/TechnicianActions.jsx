@@ -145,7 +145,7 @@ function ReturnedNotice({ activity }) {
 }
 
 // On site it closes with "Terminé" (with GPS); after a return it resubmits for validation (no GPS, the original stays).
-function ReportAndFinishStep({ activity, onChange }) {
+function ReportAndFinishStep({ activity, onChange, canRecord, canFinish }) {
   const isCorrection = activity.status === 'returned';
   const [draft, setDraft] = useState(activity.report ?? '');
   const [saving, setSaving] = useState(false);
@@ -154,7 +154,7 @@ function ReportAndFinishStep({ activity, onChange }) {
   const isDirty = draft !== activity.report;
   const missing = [
     ...activity.missing_photos.map((category) => PHOTO_CATEGORY_LABELS[category]),
-    ...(draft.trim() === '' ? ['el informe'] : []),
+    ...((canRecord ? draft : activity.report ?? '').trim() === '' ? ['el informe'] : []),
   ];
 
   async function saveReport() {
@@ -178,7 +178,7 @@ function ReportAndFinishStep({ activity, onChange }) {
     setFinishing(true);
     setError('');
     try {
-      if (isDirty) await saveReport();
+      if (isDirty && canRecord) await saveReport();
       const result = isCorrection
         ? await request(`/activities/${activity.id}/resubmit`, { method: 'POST' })
         : await request(`/activities/${activity.id}/finish`, { method: 'POST', body: await getLocation() });
@@ -191,16 +191,16 @@ function ReportAndFinishStep({ activity, onChange }) {
 
   return (
     <>
-      <Card>
+      {canRecord && <Card>
         <CardContent className="flex flex-col gap-2">
           <ReportField value={draft} onChange={setDraft} maxLength={MAX_REPORT_LENGTH} dirty={isDirty} />
           <Button variant="outline" size="touch" onClick={handleSave} disabled={saving || !isDirty}>
             {saving ? 'Guardando…' : 'Guardar informe'}
           </Button>
         </CardContent>
-      </Card>
+      </Card>}
 
-      <Card>
+      {canFinish && <Card>
         <CardContent className="flex flex-col gap-3">
           {missing.length > 0 && (
             <p className="text-muted-foreground">
@@ -223,21 +223,23 @@ function ReportAndFinishStep({ activity, onChange }) {
           </ConfirmAction>
           <ErrorMessage>{error}</ErrorMessage>
         </CardContent>
-      </Card>
+      </Card>}
     </>
   );
 }
 
 // What the technician who holds the activity can do, depending on its status.
-export default function TechnicianActions({ activity, onChange }) {
-  if (activity.status === 'assigned') return <ArriveStep activity={activity} onChange={onChange} />;
+export default function TechnicianActions({ activity, onChange, permissions }) {
+  const canRecord = permissions.includes('record_field_work');
+  const canFinish = permissions.includes('finish_report');
+  if (activity.status === 'assigned') return canRecord ? <ArriveStep activity={activity} onChange={onChange} /> : null;
   if (activity.status === 'on_site' || activity.status === 'returned') {
     return (
       <>
         {activity.status === 'returned' && <ReturnedNotice activity={activity} />}
-        <PhotosStep activity={activity} onChange={onChange} />
-        {activity.status === 'on_site' && !activity.receipt && <ReceiptStep activity={activity} onChange={onChange} />}
-        <ReportAndFinishStep activity={activity} onChange={onChange} />
+        {canRecord && <PhotosStep activity={activity} onChange={onChange} />}
+        {canRecord && activity.status === 'on_site' && !activity.receipt && <ReceiptStep activity={activity} onChange={onChange} />}
+        <ReportAndFinishStep activity={activity} onChange={onChange} canRecord={canRecord} canFinish={canFinish} />
       </>
     );
   }

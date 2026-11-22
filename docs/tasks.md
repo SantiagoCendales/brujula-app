@@ -11,6 +11,7 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 
 ## 📣 Novedades que afectan al front
 
+- **[configuración]** El engranaje abre Configuración; «Permisos por rol» es la primera opción disponible para Admin y Coordinador.
 - **[desarrollo]** Vite también acepta túneles de ngrok con dominios `ngrok-free.dev`, además de `ngrok-free.app`.
 - **[componentes]** Nuevos componentes reutilizables en `web/src/components/`: `ScheduleField` (fecha con calendario y hora con dos selectores), `VehicleCombobox` (buscador de vehículo por placa), `ActivityTypePicker` (tipo de servicio con íconos), `TechnicianDrawer` (panel desde abajo para elegir técnico) y `ConfirmAction` (botón que pide confirmación). Ejemplos en `pages/NewActivityPage.jsx` y `execution/`.
 - **[componentes]** Nuevos de shadcn en `components/ui/`: `Calendar`, `Popover`, `Command`, `ToggleGroup`, `AlertDialog`, `Drawer` (panel que sube desde abajo, como "Asignar técnico") y `Tabs` (el detalle ahora tiene Resumen / Fotos / Historial). Tu `PhotoGrid` (T12) va en la pestaña **Fotos** de `pages/ActivityDetailPage.jsx`.
@@ -45,7 +46,6 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 
 Abordarlas de a una, actualizando su estado aquí antes de empezar.
 
-- [ ] **Permisos por rol:** permitir que Admin y Coordinador configuren los permisos de cada rol.
 - [ ] **Novedades de la actividad:** agregar un campo para registrar las novedades de cada labor.
 - [ ] **Devoluciones internas:** ocultar al cliente la pestaña Vuelta y las devoluciones internas; mostrarle la actividad cuando esté completamente validada.
 - [ ] **Características de vehículos:** mostrar los datos del vehículo, incluida la placa, en la pestaña Vehículos para todos los roles.
@@ -62,10 +62,9 @@ Los componentes van en `web/src/components/`, se arman con los componentes de `c
 
 ## 🔄 En curso
 
-_(nada)_
-
 ## ✅ Hechas
 
+- **Permisos por rol:** Admin y Coordinador pueden activar o desactivar las acciones autorizadas para los roles que administran, sin modificar los límites de acceso a los datos. Probado en celular y web.
 - **Historial de notificaciones:** los avisos se conservan por usuario desde su activación y se consultan desde la campanita del encabezado, con indicador de no leídas.
 - **Áreas seguras en Android:** el encabezado y el inicio de sesión respetan la cámara frontal y las barras del sistema.
 - **Firma de recibido:** el técnico puede registrar una firma manuscrita con nombre y documento de quien recibe, o dejar constancia de que no había nadie. Es opcional, no se puede reemplazar y fue probada en celular.

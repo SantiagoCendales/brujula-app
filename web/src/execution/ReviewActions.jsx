@@ -140,11 +140,11 @@ function Deliver({ activity, onChange }) {
   );
 }
 
-export default function ReviewActions({ activity, role, onChange }) {
-  if (activity.status === 'report_ready' && ['cec', 'admin'].includes(role)) {
+export default function ReviewActions({ activity, role, permissions, onChange }) {
+  if (activity.status === 'report_ready' && ['cec', 'admin'].includes(role) && permissions.includes('review_report')) {
     return <ValidateOrReturn activity={activity} onChange={onChange} />;
   }
-  if (activity.status === 'validated' && ['coordinator', 'admin'].includes(role)) {
+  if (activity.status === 'validated' && ['coordinator', 'admin'].includes(role) && permissions.includes('deliver_report')) {
     return <Deliver activity={activity} onChange={onChange} />;
   }
   return null;

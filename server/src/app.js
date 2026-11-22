@@ -10,6 +10,7 @@ import { catalogsRouter } from './routes/catalogs.js';
 import { companiesRouter } from './routes/companies.js';
 import { eventsRouter } from './routes/events.js';
 import { notificationsRouter } from './routes/notifications.js';
+import { permissionsRouter } from './routes/permissions.js';
 import { photosRouter } from './routes/photos.js';
 import { usersRouter } from './routes/users.js';
 import { vehiclesRouter } from './routes/vehicles.js';
@@ -38,6 +39,7 @@ export function createApp() {
   app.use('/api/photos', photosRouter);
   app.use('/api/events', eventsRouter);
   app.use('/api/notifications', notificationsRouter);
+  app.use('/api/permissions', permissionsRouter);
 
   app.use('/api', () => {
     throw new HttpError(404, 'not_found', 'Ruta no encontrada');

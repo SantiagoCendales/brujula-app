@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate, requireRole } from '../auth/middleware.js';
+import { authenticate, ensurePermission, requireRole } from '../auth/middleware.js';
 import { pool, withTransaction } from '../db/pool.js';
 import { ensureHolder, findVisibleActivity, getActivityDetail, invalidStatus, lockActivity, recordEvent } from '../domain/activities.js';
 import { TECHNICIAN_EDITABLE_STATUSES } from '../domain/rules.js';
@@ -38,6 +38,7 @@ photosRouter.delete('/:id', authenticate, requireRole('technician'), async (req,
   if (!photo) throw new HttpError(404, 'not_found', 'Foto no encontrada');
 
   const activity = await findVisibleActivity(pool, photo.activity_id, req.user);
+  await ensurePermission(req.user, 'record_field_work');
   ensureHolder(activity, req.user);
   if (!TECHNICIAN_EDITABLE_STATUSES.includes(activity.status)) throw invalidStatus(activity.status);
 

@@ -34,6 +34,22 @@ export function requireRole(...roles) {
     if (!roles.includes(req.user.role)) {
       throw new HttpError(403, 'forbidden', 'No tienes permiso para esta acción');
     }
+
+    next();
+  };
+}
+
+export async function ensurePermission(user, permission) {
+  const { rows } = await pool.query(
+    'select enabled from role_permissions where role = $1 and permission = $2',
+    [user.role, permission],
+  );
+  if (!rows[0]?.enabled) throw new HttpError(403, 'forbidden', 'Tu rol no tiene permiso para esta acción');
+}
+
+export function requirePermission(permission) {
+  return async (req, _res, next) => {
+    await ensurePermission(req.user, permission);
     next();
   };
 }

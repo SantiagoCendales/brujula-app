@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { authenticate, requireRole } from '../auth/middleware.js';
+import { authenticate, requirePermission, requireRole } from '../auth/middleware.js';
 import { pool } from '../db/pool.js';
 import { vehicleScope } from '../domain/access.js';
 import { listActivities } from '../domain/activities.js';
@@ -74,7 +74,7 @@ const createSchema = z.object({
   description: z.string().trim().max(500).default(''),
 });
 
-vehiclesRouter.post('/', requireRole('coordinator', 'admin'), async (req, res) => {
+vehiclesRouter.post('/', requireRole('coordinator', 'admin'), requirePermission('create_vehicle'), async (req, res) => {
   const data = validate(createSchema, req.body);
   const { rows } = await pool.query(
     'insert into vehicles (company_id, plate, make, model, description) values ($1, $2, $3, $4, $5) returning id',

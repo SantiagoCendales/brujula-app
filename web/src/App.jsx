@@ -9,6 +9,8 @@ import ActivityDetailPage from './pages/ActivityDetailPage.jsx';
 import Home from './pages/Home.jsx';
 import Login from './pages/Login.jsx';
 import NewActivityPage from './pages/NewActivityPage.jsx';
+import PermissionsPage from './pages/PermissionsPage.jsx';
+import SettingsPage from './pages/SettingsPage.jsx';
 import VehicleDetailPage from './pages/VehicleDetailPage.jsx';
 import VehiclesPage from './pages/VehiclesPage.jsx';
 
@@ -61,6 +63,8 @@ export default function App() {
           }
         />
         <Route path="new" element={<NewActivityPage basePath="/coordinator" />} />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="permissions" element={<PermissionsPage />} />
         <Route path="activities/:id" element={<ActivityDetailPage backPath="/coordinator" />} />
         <Route path="vehicles" element={<VehiclesPage title="Vehículos" basePath="/coordinator/vehicles" />} />
         <Route

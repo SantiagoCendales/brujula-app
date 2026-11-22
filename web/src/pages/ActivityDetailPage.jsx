@@ -19,6 +19,7 @@ import { formatDateTime } from '@/lib/format';
 import { ACTIVITY_TYPE_LABELS } from '@/lib/labels';
 import { useActivityChanges } from '@/lib/liveUpdates';
 import { useApi } from '@/lib/useApi';
+import { usePermissions } from '@/lib/usePermissions';
 
 const ASSIGNABLE_STATUSES = ['requested', 'assigned'];
 
@@ -95,6 +96,7 @@ function AssignDrawer({ activity, onAssigned }) {
 export default function ActivityDetailPage({ backPath }) {
   const { id } = useParams();
   const { user } = useAuth();
+  const access = usePermissions();
   const { data, error, loading, setData, reload } = useApi(`/activities/${id}`);
   const reloadIfThisActivity = useCallback(
     (event) => {
@@ -109,9 +111,9 @@ export default function ActivityDetailPage({ backPath }) {
 
   const { activity } = data;
   const setActivity = (updated) => setData({ activity: updated });
-  const canAssign = ['coordinator', 'admin'].includes(user.role) && ASSIGNABLE_STATUSES.includes(activity.status);
+  const canAssign = ['coordinator', 'admin'].includes(user.role) && access.permissions.includes('assign_technician') && ASSIGNABLE_STATUSES.includes(activity.status);
   const isHolder = user.role === 'technician' && activity.technician?.id === user.id;
-  const isCapturing = isHolder && ['on_site', 'returned'].includes(activity.status);
+  const isCapturing = isHolder && access.permissions.includes('record_field_work') && ['on_site', 'returned'].includes(activity.status);
   const hasPhotos = activity.photos.length > 0;
   const hasEvents = activity.events.length > 0;
   const tabCount = 1 + Number(hasPhotos) + Number(hasEvents);
@@ -147,6 +149,7 @@ export default function ActivityDetailPage({ backPath }) {
         )}
 
         <TabsContent value="summary" className="flex flex-col gap-4">
+          <ErrorMessage>{access.error?.message}</ErrorMessage>
           <Card>
             <CardContent>
               <Row label="Empresa">{activity.company.name}</Row>
@@ -166,9 +169,9 @@ export default function ActivityDetailPage({ backPath }) {
           </Card>
 
           {canAssign && <AssignDrawer activity={activity} onAssigned={setData} />}
-          {isHolder && <TechnicianActions activity={activity} onChange={setActivity} />}
+          {isHolder && <TechnicianActions activity={activity} onChange={setActivity} permissions={access.permissions} />}
           <ReceiptCard receipt={activity.receipt} />
-          <ReviewActions activity={activity} role={user.role} onChange={setActivity} />
+          <ReviewActions activity={activity} role={user.role} permissions={access.permissions} onChange={setActivity} />
 
           {!isCapturing && activity.report && (
             <Card>

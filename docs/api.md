@@ -99,6 +99,26 @@ Ruta alterna: `report_ready` → `returned` → `report_ready` (se puede repetir
 
 El token dura 12 horas.
 
+### Permisos por rol ✅
+
+Admin puede configurar todos los roles; Coordinador solo Cliente, Técnico y CEC. La gestión de permisos no se puede desactivar. Solo se pueden desactivar o reactivar acciones que el rol ya tenía autorizadas: no se conceden permisos nuevos ni se cambian los filtros de empresa, asignación, estado o autoría. Cada cambio queda registrado con actor y fecha. El servidor comprueba el permiso en cada acción, incluso para sesiones existentes.
+
+| Método | Ruta | Quién | Recibe / devuelve |
+|---|---|---|---|
+| GET | `/permissions/me` | con sesión | `{ permissions: ["create_activity", …] }`: acciones habilitadas del rol |
+| GET | `/permissions` | admin, coordinator | `{ permissions: [{ role, permission, enabled }] }`: solo roles que puede administrar |
+| PATCH | `/permissions` | admin, coordinator | `{ role, permission, enabled }` → `{ ok: true }`; una combinación no autorizada para el rol responde 404 |
+
+| Permiso | Acciones |
+|---|---|
+| `create_activity` | Crear solicitud o actividad |
+| `create_vehicle` | Crear vehículo |
+| `assign_technician` | Asignar o reasignar, incluso al crear una actividad |
+| `record_field_work` | Llegada, informe, fotos y constancia de recibido |
+| `finish_report` | Terminar o reenviar el informe |
+| `review_report` | Validar o devolver el informe |
+| `deliver_report` | Entregar el informe |
+
 ### Catálogos ✅
 
 | Método | Ruta | Quién | Devuelve |

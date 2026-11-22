@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { STATUS_LABELS } from '@/lib/labels';
 import { useActivityChanges } from '@/lib/liveUpdates';
 import { useApi } from '@/lib/useApi';
+import { usePermissions } from '@/lib/usePermissions';
 
 const DEFAULT_EMPTY = {
   icon: ClipboardList,
@@ -33,6 +34,8 @@ export default function ActivitiesPage({
   const [status, setStatus] = useState(initialStatus);
   const [plateSearch, setPlateSearch] = useState('');
   const [plate, setPlate] = useState('');
+  const access = usePermissions();
+  const canCreate = newActivityPath && access.permissions.includes('create_activity');
   const normalizedPlateSearch = plateSearch.trim().toUpperCase();
   useEffect(() => {
     const timer = setTimeout(() => setPlate(normalizedPlateSearch), SEARCH_DELAY_MS);
@@ -55,7 +58,7 @@ export default function ActivitiesPage({
     <section className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl font-semibold">{title}</h1>
-        {newActivityPath && (
+        {canCreate && (
           <Button asChild size="lg">
             <Link to={newActivityPath}>{newActivityLabel}</Link>
           </Button>
@@ -78,6 +81,7 @@ export default function ActivitiesPage({
       </div>
 
       <ErrorMessage>{error?.message}</ErrorMessage>
+      <ErrorMessage>{access.error?.message}</ErrorMessage>
       {searching && (
         <div className="flex flex-col gap-3">
           <Skeleton className="h-28 rounded-xl" />
@@ -99,7 +103,7 @@ export default function ActivitiesPage({
           />
         ) : (
           <EmptyState icon={empty.icon} title={empty.title} description={empty.description}>
-            {newActivityPath && (
+            {canCreate && (
               <Button asChild size="lg">
                 <Link to={newActivityPath}>{newActivityLabel}</Link>
               </Button>
