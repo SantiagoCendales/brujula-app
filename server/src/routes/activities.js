@@ -69,6 +69,104 @@ activitiesRouter.get('/:id', async (req, res) => {
   res.json({ activity: await getActivityDetail(pool, id, req.user) });
 });
 
+const commentSchema = z.object({
+  body: z.string().trim().min(1).max(2000),
+  visibility: z.enum(['public', 'internal']).optional(),
+}).strict();
+
+function validateCommentInput(user, input, { creating = false } = {}) {
+  const data = validate(commentSchema, input);
+  if (user.role === 'client' && data.visibility === 'internal') {
+    throw new HttpError(403, 'forbidden', 'Los comentarios del cliente deben ser públicos');
+  }
+  if (creating && user.role !== 'client' && !data.visibility) {
+    throw new HttpError(400, 'validation_error', 'Selecciona si el comentario es interno o público');
+  }
+  return data;
+}
+
+activitiesRouter.get('/:id/comments', async (req, res) => {
+  const id = validate(idSchema, req.params.id);
+  await findVisibleActivity(pool, id, req.user);
+  const params = [id];
+  const scope = activityScope(req.user, params);
+  const { rows } = await pool.query(
+    `select c.id, c.body, c.visibility, c.created_at, c.edited_at, u.id as author_id, u.name as author_name
+     from activity_comments c
+     join activities a on a.id = c.activity_id
+     join users u on u.id = c.author_id
+     where a.id = $1 and ${scope} ${req.user.role === 'client' ? "and c.visibility = 'public'" : ''}
+     order by c.created_at, c.id`,
+    params,
+  );
+  res.json({ comments: rows.map(toComment) });
+});
+
+function toComment(row) {
+  return {
+    id: row.id,
+    body: row.body,
+    visibility: row.visibility,
+    created_at: row.created_at,
+    edited_at: row.edited_at,
+    author: { id: row.author_id, name: row.author_name },
+  };
+}
+
+activitiesRouter.post('/:id/comments', async (req, res) => {
+  const id = validate(idSchema, req.params.id);
+  const { body, visibility = 'public' } = validateCommentInput(req.user, req.body, { creating: true });
+  const params = [id, req.user.id, body, visibility];
+  const scope = activityScope(req.user, params);
+  const { rows } = await pool.query(
+    `insert into activity_comments (activity_id, author_id, body, visibility)
+     select a.id, $2, $3, $4 from activities a where a.id = $1 and ${scope}
+     returning id, body, visibility, created_at, edited_at, author_id`,
+    params,
+  );
+  if (!rows[0]) throw new HttpError(404, 'not_found', 'Actividad no encontrada');
+  await notifyActivityChanged(pool, id, {
+    change: 'comment_added', actorId: req.user.id, visibleToClients: visibility === 'public',
+  });
+  res.status(201).json({ comment: toComment({ ...rows[0], author_name: req.user.name }) });
+});
+
+activitiesRouter.patch('/:id/comments/:commentId', async (req, res) => {
+  const id = validate(idSchema, req.params.id);
+  const commentId = validate(idSchema, req.params.commentId);
+  const { body, visibility } = validateCommentInput(req.user, req.body);
+  const { comment, previousVisibility } = await withTransaction(async (db) => {
+    await findVisibleActivity(db, id, req.user);
+    const params = [id, commentId];
+    const scope = activityScope(req.user, params);
+    const { rows } = await db.query(
+      `select c.id, c.author_id, c.visibility from activity_comments c
+       join activities a on a.id = c.activity_id
+       where a.id = $1 and c.id = $2 and ${scope}
+       ${req.user.role === 'client' ? "and c.visibility = 'public'" : ''}
+       for update of c`,
+      params,
+    );
+    const current = rows[0];
+    if (!current) throw new HttpError(404, 'not_found', 'Comentario no encontrado');
+    if (current.author_id !== req.user.id) {
+      throw new HttpError(403, 'forbidden', 'Solo puedes editar tus propios comentarios');
+    }
+    const { rows: updated } = await db.query(
+      `update activity_comments set body = $2, visibility = $3,
+       edited_at = case when body <> $2 or visibility <> $3 then now() else edited_at end
+       where id = $1 returning id, body, visibility, created_at, edited_at, author_id`,
+      [commentId, body, visibility ?? current.visibility],
+    );
+    return { comment: updated[0], previousVisibility: current.visibility };
+  });
+  await notifyActivityChanged(pool, id, {
+    change: 'comment_updated', actorId: req.user.id,
+    visibleToClients: previousVisibility === 'public' || comment.visibility === 'public',
+  });
+  res.json({ comment: toComment({ ...comment, author_name: req.user.name }) });
+});
+
 const createSchema = z.object({
   vehicle_id: z.number().int().positive(),
   type: z.enum(ACTIVITY_TYPES),

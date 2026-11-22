@@ -2,6 +2,7 @@ import { ChevronLeft, UserRound } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useAuth } from '@/auth/AuthContext';
+import ActivityComments from '@/components/ActivityComments';
 import ErrorMessage from '@/components/ErrorMessage';
 import EventTimeline from '@/components/EventTimeline';
 import PhotoGrid from '@/components/PhotoGrid';
@@ -116,7 +117,6 @@ export default function ActivityDetailPage({ backPath }) {
   const isCapturing = isHolder && access.permissions.includes('record_field_work') && ['on_site', 'returned'].includes(activity.status);
   const hasPhotos = activity.photos.length > 0;
   const hasEvents = activity.events.length > 0;
-  const tabCount = 1 + Number(hasPhotos) + Number(hasEvents);
 
   return (
     <section className="flex flex-col gap-4">
@@ -140,13 +140,12 @@ export default function ActivityDetailPage({ backPath }) {
       </Card>
 
       <Tabs defaultValue="summary" className="w-full flex flex-col gap-4">
-        {tabCount > 1 && (
-          <TabsList className="h-11 w-full justify-start overflow-x-auto">
-            <TabsTrigger value="summary">Resumen</TabsTrigger>
-            {hasPhotos && <TabsTrigger value="photos">Fotos ({activity.photos.length})</TabsTrigger>}
-            {hasEvents && <TabsTrigger value="history">Historial</TabsTrigger>}
-          </TabsList>
-        )}
+        <TabsList className="h-11 w-full justify-start overflow-x-auto">
+          <TabsTrigger value="summary">Resumen</TabsTrigger>
+          <TabsTrigger value="comments">Novedades</TabsTrigger>
+          {hasPhotos && <TabsTrigger value="photos">Fotos ({activity.photos.length})</TabsTrigger>}
+          {hasEvents && <TabsTrigger value="history">Historial</TabsTrigger>}
+        </TabsList>
 
         <TabsContent value="summary" className="flex flex-col gap-4">
           <ErrorMessage>{access.error?.message}</ErrorMessage>
@@ -183,6 +182,10 @@ export default function ActivityDetailPage({ backPath }) {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="comments">
+          <ActivityComments key={activity.id} activityId={activity.id} userId={user.id} role={user.role} />
         </TabsContent>
 
         {hasPhotos && (

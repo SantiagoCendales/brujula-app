@@ -183,6 +183,9 @@ Las acciones del técnico (Llegué, informe, fotos, Terminé) solo las puede hac
 | GET | `/activities?status=&vehicle_id=&technician_id=&view=&plate=` | todos, con filtro por rol | Filtros opcionales. `view` es para el técnico: `pending` o `history`; `plate` busca coincidencias parciales sin distinguir mayúsculas | `{ activities: [activity_summary] }` |
 | GET | `/activities/counts` | todos, con filtro por rol | — | `{ counts: { requested: 2, on_site: 1, … }, total: 9 }`: cantidad por estado, para los filtros |
 | GET | `/activities/:id` | todos, con filtro por rol | — | `{ activity: activity_detail }` |
+| GET | `/activities/:id/comments` | todos los que ven la actividad; el cliente solo ve comentarios públicos | — | `{ comments: [activity_comment] }`, del más antiguo al más reciente |
+| POST | `/activities/:id/comments` | todos los que ven la actividad, en cualquier estado | `{ body, visibility? }`: texto de 1 a 2.000 caracteres; `visibility` es obligatorio para el personal (`public` o `internal`) y para el cliente siempre es `public` | `201 { comment }` |
+| PATCH | `/activities/:id/comments/:commentId` | solo el autor, si aún ve la actividad | `{ body, visibility? }`: el personal puede cambiar la visibilidad; el cliente solo puede usar `public` | `{ comment }`; un comentario visible de otro autor responde 403 |
 | POST | `/activities` | client, coordinator | `{ vehicle_id, type, description?, scheduled_for?, technician_id? }` | `201 { activity }` |
 | POST | `/activities/:id/assign` | coordinator | `{ technician_id }` | `{ activity }` |
 | POST | `/activities/:id/arrive` | técnico que la tiene | `{ lat, lng, accuracy_m? }` | `{ activity }` |
@@ -204,6 +207,16 @@ El informe y las fotos se pueden editar en `on_site` y en `returned`. La nota de
 Las acciones devuelven la actividad completa ya actualizada: el front reemplaza lo que tiene, sin volver a pedirla.
 
 La constancia de recibido es opcional y no modifica el estado de la actividad. En una firma, `signature` es una lista de trazos, cada uno una lista de puntos `[x, y]` enteros entre 0 y 1000; `signer_name` y `signer_document` identifican a la persona presente. El técnico registra la constancia antes de terminar; no se puede modificar ni reemplazar. Es una firma manuscrita capturada en pantalla, no una firma criptográfica ni una autenticación del cliente. El detalle incluye `receipt` (o `null`) con `kind`, datos de la firma cuando existan, `recorded_by` y `created_at`; se muestra únicamente a usuarios autorizados a ver la actividad.
+
+Las novedades públicas son visibles para todos los usuarios que pueden ver la actividad, incluido el cliente, incluso después de la entrega. Las internas solo son visibles para personal con acceso a la actividad; para el cliente responden 404. Los comentarios del cliente son siempre públicos. Los comentarios anteriores a esta distinción siguen siendo públicos. Cada autor puede editar el texto y, si pertenece al personal, cambiar la visibilidad; no se pueden borrar. Cambiar de público a interno impide futuras lecturas del cliente, pero no revierte lecturas anteriores. No cambian el estado de la actividad. Las fechas las registra el servidor; `edited_at` es `null` hasta la primera modificación del texto o de la visibilidad.
+
+```json
+"activity_comment": {
+  "id": 8, "body": "Se revisó nuevamente la instalación.", "visibility": "public",
+  "created_at": "2026-11-07T14:05:12.000Z", "edited_at": null,
+  "author": { "id": 3, "name": "Tomás Técnico" }
+}
+```
 
 ```json
 "activity_summary": {
@@ -258,13 +271,14 @@ event: activity.changed
 data: {"type":"activity.changed","activity_id":12,"status":"on_site","change":"arrived","actor_id":3,"technician_id":3}
 ```
 
-- `change`: qué pasó (`created`, `assigned`, `arrived`, `report_updated`, `photo_added`, `photo_deleted`, `receipt_recorded`, `finished`, `validated`, `returned`, `resubmitted`, `delivered`).
+- `change`: qué pasó (`created`, `assigned`, `arrived`, `report_updated`, `photo_added`, `photo_deleted`, `receipt_recorded`, `finished`, `validated`, `returned`, `resubmitted`, `delivered`, `comment_added`, `comment_updated`).
 - `actor_id`: quién lo hizo. La app no le muestra notificaciones a nadie por sus propias acciones.
 - `technician_id`: quién la tiene ahora (o `null`).
 
 Con eso la app decide qué notificar a cada rol (reglas en `web/src/layout/ActivityNotifier.jsx`).
 
-- Coordinador, CEC y admin reciben todo. El cliente, solo lo de su empresa. El técnico, lo que tiene, lo que ejecutó y lo que le acaban de reasignar a otro.
+- Coordinador, CEC y admin reciben todo. El cliente, solo lo de su empresa. El técnico recibe lo que tiene, lo que ejecutó y lo que le acaban de reasignar a otro; las novedades también se actualizan en el historial de vehículos que tiene asignados.
+- Los cambios de novedades internas no se notifican al cliente; cuando una novedad pasa de pública a interna o viceversa, se notifica para actualizar la lista visible.
 - El aviso no trae datos de la actividad: la pantalla vuelve a pedirlos a la API, que aplica los permisos.
 - Cada 25 s llega un comentario `: ping` para que los proxies no corten la conexión.
 - En el front ya está resuelto en `web/src/lib/liveUpdates.js`: una pantalla solo tiene que llamar `useActivityChanges(reload)`.

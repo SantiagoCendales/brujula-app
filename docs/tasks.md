@@ -11,6 +11,7 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 
 ## 📣 Novedades que afectan al front
 
+- **[novedades]** El detalle incluye una pestaña de comentarios públicos o internos. El personal elige y ve la visibilidad; el cliente no ve esa etiqueta. Los internos usan el color principal del tema. Las rutas y datos están en `docs/api.md`.
 - **[configuración]** El engranaje abre Configuración; «Permisos por rol» es la primera opción disponible para Admin y Coordinador.
 - **[desarrollo]** Vite también acepta túneles de ngrok con dominios `ngrok-free.dev`, además de `ngrok-free.app`.
 - **[componentes]** Nuevos componentes reutilizables en `web/src/components/`: `ScheduleField` (fecha con calendario y hora con dos selectores), `VehicleCombobox` (buscador de vehículo por placa), `ActivityTypePicker` (tipo de servicio con íconos), `TechnicianDrawer` (panel desde abajo para elegir técnico) y `ConfirmAction` (botón que pide confirmación). Ejemplos en `pages/NewActivityPage.jsx` y `execution/`.
@@ -46,7 +47,6 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 
 Abordarlas de a una, actualizando su estado aquí antes de empezar.
 
-- [ ] **Novedades de la actividad:** agregar un campo para registrar las novedades de cada labor.
 - [ ] **Devoluciones internas:** ocultar al cliente la pestaña Vuelta y las devoluciones internas; mostrarle la actividad cuando esté completamente validada.
 - [ ] **Características de vehículos:** mostrar los datos del vehículo, incluida la placa, en la pestaña Vehículos para todos los roles.
 - [ ] **Llegada y salida del técnico:** mostrar a Cliente, Admin y Coordinador cuándo el técnico llegó y salió de la actividad.
@@ -64,6 +64,7 @@ Los componentes van en `web/src/components/`, se arman con los componentes de `c
 
 ## ✅ Hechas
 
+- **Novedades de la actividad:** comentarios públicos o internos en cualquier estado; cada autor puede editar los suyos y su visibilidad si es personal, sin borrarlos, con fechas de creación y edición.
 - **Permisos por rol:** Admin y Coordinador pueden activar o desactivar las acciones autorizadas para los roles que administran, sin modificar los límites de acceso a los datos. Probado en celular y web.
 - **Historial de notificaciones:** los avisos se conservan por usuario desde su activación y se consultan desde la campanita del encabezado, con indicador de no leídas.
 - **Áreas seguras en Android:** el encabezado y el inicio de sesión respetan la cámara frontal y las barras del sistema.

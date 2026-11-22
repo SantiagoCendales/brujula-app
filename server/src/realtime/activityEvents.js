@@ -12,7 +12,7 @@ export function subscribe(subscriber) {
 }
 
 function canSee(user, change) {
-  if (user.role === 'client') return user.company_id === change.companyId;
+  if (user.role === 'client') return change.visibleToClients && user.company_id === change.companyId;
   if (user.role === 'technician') return change.technicianIds.includes(user.id);
   return true;
 }
@@ -35,21 +35,32 @@ function publish(change) {
 
 // Call after the change is committed, so whoever refetches sees the new data.
 // `change` names what happened (created, assigned, arrived, finished, validated, returned, resubmitted, delivered,
-// report_updated, photo_added, photo_deleted). `previousTechnicianId` lets a technician who just lost the activity
+// report_updated, photo_added, photo_deleted, comment_added, comment_updated). `previousTechnicianId` lets a technician who just lost the activity
 // (reassignment) refresh their list.
-export async function notifyActivityChanged(db, activityId, { change, actorId, previousTechnicianId = null }) {
-  const { rows } = await db.query('select company_id, technician_id, performed_by, status from activities where id = $1', [
+export async function notifyActivityChanged(db, activityId, { change, actorId, previousTechnicianId = null, visibleToClients = true }) {
+  const { rows } = await db.query(`select company_id, technician_id, performed_by, status,
+    case when $2::boolean then array(select distinct assigned.technician_id from activities assigned
+      where assigned.vehicle_id = activities.vehicle_id and assigned.technician_id is not null)
+      else array[]::integer[] end as vehicle_technician_ids
+    from activities where id = $1`, [
     activityId,
+    ['comment_added', 'comment_updated'].includes(change),
   ]);
   const activity = rows[0];
   if (!activity) return;
   publish({
     activityId,
     companyId: activity.company_id,
+    visibleToClients,
     status: activity.status,
     change,
     actorId,
     technicianId: activity.technician_id,
-    technicianIds: [activity.technician_id, activity.performed_by, previousTechnicianId].filter(Boolean),
+    technicianIds: [
+      activity.technician_id,
+      activity.performed_by,
+      previousTechnicianId,
+      ...activity.vehicle_technician_ids,
+    ].filter(Boolean),
   });
 }
