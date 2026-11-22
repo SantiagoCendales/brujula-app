@@ -44,13 +44,16 @@ function NavTabs({ role }) {
     .sort((first, second) => second.to.length - first.to.length)[0];
 
   return (
-    <nav className="flex border-b bg-card">
+    <nav aria-label="Navegación principal" className="flex gap-2 border-b bg-muted px-2 pt-2 pb-4">
       {tabs.map((tab) => (
         <Link
           key={tab.to}
           to={tab.to}
-          className={`flex-1 border-b-2 py-3 text-center font-medium ${
-            tab === active ? 'border-primary text-primary' : 'border-transparent text-muted-foreground'
+          aria-current={tab === active ? 'page' : undefined}
+          className={`relative flex min-h-11 flex-1 items-center justify-center rounded-full border px-2 text-center font-medium transition-colors before:pointer-events-none before:absolute before:inset-x-3 before:top-[calc(100%+3px)] before:h-1.5 before:rounded-full before:blur-[3px] focus-visible:outline-2 focus-visible:outline-ring ${
+            tab === active
+              ? 'border-transparent bg-primary/95 font-semibold text-primary-foreground before:bg-foreground/40'
+              : 'border-border bg-background text-foreground before:bg-foreground/20 hover:bg-muted'
           }`}
         >
           {tab.label}

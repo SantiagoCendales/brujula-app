@@ -11,6 +11,7 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 
 ## 📣 Novedades que afectan al front
 
+- **[pestañas]** La navegación y las pestañas del detalle usan botones ovalados con sombra debajo; la opción activa se resalta con el color principal y una sombra más marcada.
 - **[novedades]** El detalle incluye una pestaña de comentarios públicos o internos. El personal elige y ve la visibilidad; el cliente no ve esa etiqueta. Los internos usan el color principal del tema. Las rutas y datos están en `docs/api.md`.
 - **[configuración]** El engranaje abre Configuración; «Permisos por rol» es la primera opción disponible para Admin y Coordinador.
 - **[desarrollo]** Vite también acepta túneles de ngrok con dominios `ngrok-free.dev`, además de `ngrok-free.app`.

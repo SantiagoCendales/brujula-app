@@ -140,7 +140,7 @@ export default function ActivityDetailPage({ backPath }) {
       </Card>
 
       <Tabs defaultValue="summary" className="w-full flex flex-col gap-4">
-        <TabsList className="h-11 w-full justify-start overflow-x-auto">
+        <TabsList className="w-full justify-start gap-2 overflow-x-auto px-2 pt-2 pb-4 group-data-[orientation=horizontal]/tabs:h-17">
           <TabsTrigger value="summary">Resumen</TabsTrigger>
           <TabsTrigger value="comments">Novedades</TabsTrigger>
           {hasPhotos && <TabsTrigger value="photos">Fotos ({activity.photos.length})</TabsTrigger>}
