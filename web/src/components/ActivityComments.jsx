@@ -148,6 +148,7 @@ export default function ActivityComments({ activityId, userId, role }) {
           <form className="flex flex-col gap-3" onSubmit={submit}>
             <Label htmlFor="new-comment">Nueva novedad</Label>
             <Textarea id="new-comment" value={body} maxLength={MAX_COMMENT_LENGTH} disabled={saving}
+              className={!isClient && !visibility ? 'cursor-pointer' : undefined}
               readOnly={!isClient && !visibility}
               aria-haspopup={!isClient && !visibility ? 'dialog' : undefined}
               onClick={(event) => { if (!isClient && !visibility) openVisibility('new', event.currentTarget); }}

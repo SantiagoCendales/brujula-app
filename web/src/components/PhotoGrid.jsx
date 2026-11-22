@@ -36,7 +36,7 @@ export default function PhotoGrid({ photos = [], onDelete }) {
                 type="button"
                 onClick={() => setSelectedPhoto(photo)}
                 aria-label={`Ampliar ${label.toLowerCase()}`}
-                className="block aspect-square w-full overflow-hidden rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                className="block aspect-square w-full cursor-pointer overflow-hidden rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
                 <img src={photoUrl(photo.url)} alt={label} className="size-full object-cover" />
               </button>

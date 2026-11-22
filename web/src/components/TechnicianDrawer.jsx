@@ -58,7 +58,7 @@ export default function TechnicianDrawer({
                     type="button"
                     onClick={() => setSelectedId(technician.id)}
                     aria-pressed={selected}
-                    className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left text-base ${
+                    className={`flex w-full cursor-pointer items-center gap-3 rounded-xl border p-3 text-left text-base ${
                       selected ? 'border-primary bg-primary/10' : 'bg-card'
                     }`}
                   >
