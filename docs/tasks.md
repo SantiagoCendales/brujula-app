@@ -11,6 +11,7 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 
 ## 📣 Novedades que afectan al front
 
+- **[notificaciones]** Al pulsar «Terminé», el cliente recibe un aviso de que el técnico terminó el trabajo; el informe sigue oculto hasta su validación.
 - **[vehículos]** La lista muestra placas; el detalle incluye marca, modelo, VIN, año, color e historial. El técnico también tiene acceso según sus permisos actuales.
 - **[notificaciones]** El panel permite desplazarse sin recortar los botones. Cada aviso sin leer se puede marcar como leído sin abrir la actividad; el contador de la campanita se actualiza al hacerlo.
 - **[devoluciones]** El cliente no ve el filtro «Devuelta»; la API presenta esas actividades como «Informe listo» y oculta el informe y las fotos hasta la validación.
@@ -24,7 +25,7 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 - **[componentes]** Hay dependencias nuevas: después del `git pull`, correr `npm install`.
 - **[filtros]** Tu `StatusFilter` ahora muestra la cantidad en cada filtro ("En sitio 2"). Le sumé una prop opcional `counts` (la respuesta de `GET /activities/counts`); sin ella se ve igual que antes. Se actualiza en vivo.
 - **[pulido]** Nuevos `components/BrujulaLogo.jsx` (el logo, toma el color del texto) y `components/EmptyState.jsx` (pantalla vacía con ícono, título y texto). Usarlos en pantallas nuevas.
-- **[notificaciones]** Cada rol recibe un aviso arriba (tarjeta con ícono, placa y botón **Ver actividad**) cuando pasa algo que le importa: al técnico cuando le asignan o le devuelven una actividad; al coordinador cuando un técnico llega, envía o reenvía un informe, un cliente pide un servicio o se valida un informe; al CEC cuando hay un informe para validar; al cliente cuando el técnico llega o le entregan el informe. Las reglas están en `layout/ActivityNotifier.jsx` (`RULES`). Para otros avisos simples: `import { toast } from 'sonner'` y `toast('Texto')`.
+- **[notificaciones]** Cada rol recibe un aviso arriba (tarjeta con ícono, placa y botón **Ver actividad**) cuando pasa algo que le importa: al técnico cuando le asignan o le devuelven una actividad; al coordinador cuando un técnico llega, envía o reenvía un informe, un cliente pide un servicio o se valida un informe; al CEC cuando hay un informe para validar; al cliente cuando el técnico llega, termina el trabajo o le entregan el informe. Las reglas están en `layout/ActivityNotifier.jsx` (`RULES`). Para otros avisos simples: `import { toast } from 'sonner'` y `toast('Texto')`.
 - **[tiempo real]** Las pantallas se actualizan solas cuando alguien cambia una actividad (por ejemplo, el técnico marca Llegué y el coordinador lo ve al instante). Arriba, al lado de "Brújula", hay un indicador "En vivo".
 - **[tiempo real]** Si armás una pantalla que muestra actividades, para que se refresque sola: `const { data, reload } = useApi(...)` y después `useActivityChanges(reload)` (de `@/lib/liveUpdates`). Ejemplo en `pages/ActivitiesPage.jsx`.
 - **[devolver]** Nuevo flujo: el CEC puede **devolver** un informe con una nota; vuelve al técnico en estado "Devuelta", él corrige y lo **reenvía**. Pantallas en `execution/ReviewActions.jsx` (CEC) y `execution/TechnicianActions.jsx` (técnico).

@@ -1,4 +1,4 @@
-import { BellRing, FileCheck, Inbox, MapPin, PackageCheck, Undo2 } from 'lucide-react';
+import { BellRing, CircleCheckBig, FileCheck, Inbox, MapPin, PackageCheck, Undo2 } from 'lucide-react';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -81,6 +81,12 @@ const RULES = [
     matches: (event) => event.change === 'arrived',
     title: (activity) => `${technicianName(activity, 'El técnico')} llegó a tu vehículo`,
     Icon: MapPin,
+  },
+  {
+    roles: ['client'],
+    matches: (event) => event.change === 'finished',
+    title: (activity) => `${technicianName(activity, 'El técnico')} terminó el trabajo`,
+    Icon: CircleCheckBig,
   },
   {
     roles: ['client'],

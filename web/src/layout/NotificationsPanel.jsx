@@ -20,7 +20,9 @@ function notificationTitle(item, role) {
     case 'returned': return `${item.actor_name} devolvió tu informe`;
     case 'arrived': return `${item.actor_name} llegó al sitio`;
     case 'created': return 'Nueva solicitud de servicio';
-    case 'finished': return `${item.actor_name} envió ${role === 'cec' || role === 'admin' ? 'un informe para validar' : 'el informe'}`;
+    case 'finished': return role === 'client'
+      ? `${item.actor_name} terminó el trabajo`
+      : `${item.actor_name} envió ${role === 'cec' || role === 'admin' ? 'un informe para validar' : 'el informe'}`;
     case 'resubmitted': return `${item.actor_name} reenvió el informe corregido`;
     case 'validated': return 'Informe validado: listo para entregar';
     case 'delivered': return 'Tu informe está listo';

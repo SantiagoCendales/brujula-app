@@ -132,7 +132,7 @@ test('a technician hears about a new activity assigned to them as soon as it is 
   ]);
 });
 
-test('admin and coordinator hear when a technician finishes a report', async () => {
+test('staff and the activity company client hear when a technician finishes a report', async () => {
   tokens.admin ??= await loginAs(app, 'admin@brujula.test');
   const created = await request(app)
     .post('/api/activities')
@@ -151,6 +151,8 @@ test('admin and coordinator hear when a technician finishes a report', async () 
 
   const admin = await openStream(tokens.admin);
   const coordinator = await openStream(tokens.coordinator);
+  const clientCondor = await openStream(tokens.clientCondor);
+  const clientCeiba = await openStream(tokens.clientCeiba);
   await settle();
   const finished = await request(app)
     .post(`/api/activities/${id}/finish`)
@@ -159,12 +161,13 @@ test('admin and coordinator hear when a technician finishes a report', async () 
   assert.equal(finished.status, 200);
   await settle();
 
-  for (const stream of [admin, coordinator]) {
+  for (const stream of [admin, coordinator, clientCondor]) {
     assert.deepEqual(
       stream.events.map((event) => [event.activity_id, event.change, event.status, event.actor_id]),
       [[id, 'finished', 'report_ready', ids.users.technician1]],
     );
   }
+  assert.deepEqual(clientCeiba.events, []);
 });
 
 test('the stream requires a valid session', async () => {

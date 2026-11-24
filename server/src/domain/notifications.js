@@ -1,7 +1,7 @@
 const ROLE_CHANGES = {
   created: ['coordinator', 'admin'],
   arrived: ['coordinator', 'admin', 'client'],
-  finished: ['coordinator', 'admin', 'cec'],
+  finished: ['coordinator', 'admin', 'cec', 'client'],
   resubmitted: ['coordinator', 'admin', 'cec'],
   validated: ['coordinator', 'admin'],
   delivered: ['client'],

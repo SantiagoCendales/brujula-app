@@ -167,6 +167,8 @@ La placa se guarda en mayúsculas y es única. `vin`, `year` y `color` son opcio
 
 Se conservan por usuario desde la activación de la función, con las reglas de los avisos actuales; no se reconstruyen notificaciones anteriores. Solo aparecen mientras el usuario tenga permiso para ver la actividad, y las acciones propias no generan avisos para el actor.
 
+Al finalizar el trabajo, los clientes de la empresa reciben un aviso `finished`; esto no les muestra el informe ni las fotos antes de la validación.
+
 | Método | Ruta | Devuelve |
 |---|---|---|
 | GET | `/notifications?before=123` | `{ notifications, has_more }`: hasta 50 avisos, del más reciente al más antiguo; `before` es el id del último aviso de la página anterior |

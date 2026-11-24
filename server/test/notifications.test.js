@@ -44,6 +44,33 @@ test('notifications persist for recipients, isolate companies and track reads pe
   assert.equal((await get('/api/notifications/unread-count', tokens.coordinator)).body.count, 1);
 });
 
+test('finishing work notifies only the client of the activity company', async () => {
+  const id = ids.activities[1];
+  for (const category of ['plate', 'odometer', 'issue_found', 'issue_fixed']) {
+    const photo = await request(app)
+      .post(`/api/activities/${id}/photos`)
+      .set(bearer(tokens.technician1))
+      .field('category', category)
+      .attach('photo', Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(64, 1)]), 'photo.jpg');
+    assert.equal(photo.status, 201);
+  }
+  const report = await request(app).patch(`/api/activities/${id}/report`)
+    .set(bearer(tokens.technician1)).send({ report: 'Trabajo realizado' });
+  assert.equal(report.status, 200);
+  assert.equal((await post(`/api/activities/${id}/finish`, tokens.technician1, { lat: 1, lng: 1 })).status, 200);
+
+  const client = await get('/api/notifications', tokens.clientCondor);
+  const finished = client.body.notifications.find((item) => item.activity_id === id && item.type === 'finished');
+  assert.ok(finished);
+  assert.equal(finished.read_at, null);
+  assert.equal((await get('/api/notifications/unread-count', tokens.clientCondor)).body.count, 1);
+  const otherClient = await get('/api/notifications', tokens.clientCeiba);
+  assert.ok(!otherClient.body.notifications.some((item) => item.activity_id === id));
+  const detail = await get(`/api/activities/${id}`, tokens.clientCondor);
+  assert.equal(detail.body.activity.report, null);
+  assert.deepEqual(detail.body.activity.photos, []);
+});
+
 test('assigned technician gets an alert, but loses access after reassignment', async () => {
   const id = ids.activities[0];
   assert.equal((await post(`/api/activities/${id}/assign`, tokens.coordinator, { technician_id: ids.users.technician1 })).status, 200);
