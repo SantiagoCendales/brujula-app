@@ -11,6 +11,7 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 
 ## 📣 Novedades que afectan al front
 
+- **[notificaciones]** El panel permite desplazarse sin recortar los botones. Cada aviso sin leer se puede marcar como leído sin abrir la actividad; el contador de la campanita se actualiza al hacerlo.
 - **[devoluciones]** El cliente no ve el filtro «Devuelta»; la API presenta esas actividades como «Informe listo» y oculta el informe y las fotos hasta la validación.
 - **[cursor]** Los controles interactivos habilitados muestran el cursor de mano en escritorio; los campos editables mantienen el cursor de texto.
 - **[pestañas]** La navegación y las pestañas del detalle usan botones ovalados con sombra debajo; la opción activa se resalta con el color principal y una sombra más marcada.

@@ -93,9 +93,9 @@ function NotificationsButton() {
           {error && <span className="sr-only">No se pudo cargar el contador.</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-[min(22rem,calc(100vw-2rem))]">
+      <PopoverContent align="end" className="max-h-[min(70dvh,var(--radix-popover-content-available-height))] w-[min(22rem,calc(100vw-2rem))]">
         <ErrorMessage>{error?.message}</ErrorMessage>
-        <NotificationsPanel onOpenActivity={closeAfterRead} />
+        <NotificationsPanel onOpenActivity={closeAfterRead} onRead={reload} />
       </PopoverContent>
     </Popover>
   );
