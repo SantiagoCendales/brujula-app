@@ -11,6 +11,7 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 
 ## 📣 Novedades que afectan al front
 
+- **[devoluciones]** El cliente no ve el filtro «Devuelta»; la API presenta esas actividades como «Informe listo» y oculta el informe y las fotos hasta la validación.
 - **[cursor]** Los controles interactivos habilitados muestran el cursor de mano en escritorio; los campos editables mantienen el cursor de texto.
 - **[pestañas]** La navegación y las pestañas del detalle usan botones ovalados con sombra debajo; la opción activa se resalta con el color principal y una sombra más marcada.
 - **[novedades]** El detalle incluye una pestaña de comentarios públicos o internos. El personal elige y ve la visibilidad; el cliente no ve esa etiqueta. Los internos usan el color principal del tema. Las rutas y datos están en `docs/api.md`.
@@ -49,7 +50,6 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 
 Abordarlas de a una, actualizando su estado aquí antes de empezar.
 
-- [ ] **Devoluciones internas:** ocultar al cliente la pestaña Vuelta y las devoluciones internas; mostrarle la actividad cuando esté completamente validada.
 - [ ] **Características de vehículos:** mostrar los datos del vehículo, incluida la placa, en la pestaña Vehículos para todos los roles.
 - [ ] **Llegada y salida del técnico:** mostrar a Cliente, Admin y Coordinador cuándo el técnico llegó y salió de la actividad.
 - [ ] **Preferencias de notificaciones:** agregar Configuración para que cada usuario elija qué notificaciones recibe.
@@ -63,6 +63,8 @@ Abordarlas de a una, actualizando su estado aquí antes de empezar.
 Los componentes van en `web/src/components/`, se arman con los componentes de `components/ui/` y son de presentación: reciben datos por props y no llaman a la API. Cada uno tiene una versión provisoria en las páginas, marcada con `TODO(T…)`: revisarla y extraerla a su propio componente.
 
 ## 🔄 En curso
+
+- **Devoluciones internas:** el cliente conserva el último estado anterior a la devolución; el informe y las fotos se muestran solo después de la validación.
 
 ## ✅ Hechas
 

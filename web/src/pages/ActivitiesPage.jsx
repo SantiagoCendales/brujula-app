@@ -1,6 +1,7 @@
 import { ClipboardList, ListFilter, Search, SearchX } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
+import { useAuth } from '@/auth/AuthContext';
 import ActivityCard from '@/components/ActivityCard';
 import EmptyState from '@/components/EmptyState';
 import ErrorMessage from '@/components/ErrorMessage';
@@ -34,6 +35,7 @@ export default function ActivitiesPage({
   const [status, setStatus] = useState(initialStatus);
   const [plateSearch, setPlateSearch] = useState('');
   const [plate, setPlate] = useState('');
+  const { user } = useAuth();
   const access = usePermissions();
   const canCreate = newActivityPath && access.permissions.includes('create_activity');
   const normalizedPlateSearch = plateSearch.trim().toUpperCase();
@@ -65,7 +67,7 @@ export default function ActivitiesPage({
         )}
       </div>
 
-      {showFilter && <StatusFilter value={status} onChange={setStatus} counts={counts.data} />}
+      {showFilter && <StatusFilter value={status} onChange={setStatus} counts={counts.data} hideReturned={user.role === 'client'} />}
 
       <div className="relative">
         <Search className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-muted-foreground" />

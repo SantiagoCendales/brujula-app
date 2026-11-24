@@ -24,5 +24,4 @@ export const TECHNICIAN_PENDING_STATUSES = ['assigned', 'on_site', 'returned'];
 
 export const TECHNICIAN_HISTORY_STATUSES = ['report_ready', 'validated', 'delivered'];
 
-// TODO(post-hackathon): only 'delivered' once the CEC validate/return flow is complete.
-export const CLIENT_REPORT_VISIBLE_STATUSES = ['report_ready', 'validated', 'delivered'];
+export const CLIENT_REPORT_VISIBLE_STATUSES = ['validated', 'delivered'];

@@ -44,7 +44,7 @@ Todos los errores tienen la misma forma:
 | `coordinator` | Coordinador | Todas |
 | `cec` | CEC | Todas |
 | `technician` | Técnico | Las que **tiene ahora** (`technician_id`), las que **ejecutó** (`performed_by`) y el historial completo de los vehículos que tiene asignados ahora. Solo puede actuar sobre las que tiene ahora |
-| `client` | Cliente | Solo las de su empresa. El informe y las fotos, desde `report_ready` |
+| `client` | Cliente | Solo las de su empresa. El informe y las fotos, desde `validated` |
 
 Lo que no te corresponde responde **404 y no 403**, para que nadie pueda averiguar probando IDs qué existe de otras empresas.
 
@@ -76,7 +76,7 @@ Lo que no te corresponde responde **404 y no 403**, para que nadie pueda averigu
 
 Cada cambio de estado deja un **evento** con quién, cuándo, de qué estado a cuál y datos extra. Los eventos no se editan ni se borran.
 
-Ruta alterna: `report_ready` → `returned` → `report_ready` (se puede repetir hasta que el CEC valide). Mientras está `returned`, el cliente no ve el informe.
+Ruta alterna: `report_ready` → `returned` → `report_ready` (se puede repetir hasta que el CEC valide). El cliente sigue viendo `report_ready` durante la devolución y no ve el informe ni las fotos hasta la validación.
 
 ## Rutas
 
@@ -204,6 +204,8 @@ Las acciones del técnico (Llegué, informe, fotos, Terminé) solo las puede hac
 
 El informe y las fotos se pueden editar en `on_site` y en `returned`. La nota de una devolución está en el evento `returned` (`events[].note`).
 
+Para el cliente, una actividad en `returned` se presenta como `report_ready` y sin técnico asignado, también en el historial del vehículo. Los filtros y conteos usan ese estado visible; filtrar por `returned` no devuelve actividades.
+
 Las acciones devuelven la actividad completa ya actualizada: el front reemplaza lo que tiene, sin volver a pedirla.
 
 La constancia de recibido es opcional y no modifica el estado de la actividad. En una firma, `signature` es una lista de trazos, cada uno una lista de puntos `[x, y]` enteros entre 0 y 1000; `signer_name` y `signer_document` identifican a la persona presente. El técnico registra la constancia antes de terminar; no se puede modificar ni reemplazar. Es una firma manuscrita capturada en pantalla, no una firma criptográfica ni una autenticación del cliente. El detalle incluye `receipt` (o `null`) con `kind`, datos de la firma cuando existan, `recorded_by` y `created_at`; se muestra únicamente a usuarios autorizados a ver la actividad.
@@ -249,7 +251,7 @@ Las novedades públicas son visibles para todos los usuarios que pueden ver la a
 ```
 
 - `missing_photos`: las obligatorias que faltan. Sirve para la checklist del técnico.
-- Para el cliente: `events` llega vacío, y `report` llega en `null` y `photos` vacío mientras el estado sea anterior a `report_ready`.
+- Para el cliente: `events` llega vacío, y `report` llega en `null` y `photos` vacío hasta que el estado sea `validated` o `delivered`.
 
 Si "Terminé" falla porque falta algo:
 
@@ -278,6 +280,7 @@ data: {"type":"activity.changed","activity_id":12,"status":"on_site","change":"a
 Con eso la app decide qué notificar a cada rol (reglas en `web/src/layout/ActivityNotifier.jsx`).
 
 - Coordinador, CEC y admin reciben todo. El cliente, solo lo de su empresa. El técnico recibe lo que tiene, lo que ejecutó y lo que le acaban de reasignar a otro; las novedades también se actualizan en el historial de vehículos que tiene asignados.
+- El cliente no recibe eventos de devolución, reenvío ni correcciones de informe o fotos durante la devolución. Las novedades públicas siguen actualizándose con el estado `report_ready` y sin técnico asignado.
 - Los cambios de novedades internas no se notifican al cliente; cuando una novedad pasa de pública a interna o viceversa, se notifica para actualizar la lista visible.
 - El aviso no trae datos de la actividad: la pantalla vuelve a pedirlos a la API, que aplica los permisos.
 - Cada 25 s llega un comentario `: ping` para que los proxies no corten la conexión.

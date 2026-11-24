@@ -12,7 +12,11 @@ export function subscribe(subscriber) {
 }
 
 function canSee(user, change) {
-  if (user.role === 'client') return change.visibleToClients && user.company_id === change.companyId;
+  if (user.role === 'client') {
+    const internalReturnChange = ['returned', 'resubmitted'].includes(change.change)
+      || (change.status === 'returned' && ['report_updated', 'photo_added', 'photo_deleted'].includes(change.change));
+    return change.visibleToClients && !internalReturnChange && user.company_id === change.companyId;
+  }
   if (user.role === 'technician') return change.technicianIds.includes(user.id);
   return true;
 }
@@ -29,7 +33,11 @@ function publish(change) {
     technician_id: change.technicianId,
   };
   for (const subscriber of subscribers) {
-    if (canSee(subscriber.user, change)) subscriber.send(event);
+    if (canSee(subscriber.user, change)) {
+      subscriber.send(subscriber.user.role === 'client' && change.status === 'returned'
+        ? { ...event, status: 'report_ready', technician_id: null }
+        : event);
+    }
   }
 }
 

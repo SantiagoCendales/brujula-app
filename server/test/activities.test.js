@@ -165,7 +165,7 @@ describe('client visibility', () => {
     assert.equal(response.status, 404);
   });
 
-  test('the report and photos stay hidden until the report is ready', async () => {
+  test('the report stays hidden until validation', async () => {
     const hiddenId = await insertActivity({
       company: ids.companies.ceiba,
       vehicle: ids.vehicles.ceiba2,
@@ -178,6 +178,9 @@ describe('client visibility', () => {
     assert.equal(hidden.body.activity.report, null);
 
     await pool.query(`update activities set status = 'report_ready', technician_id = null where id = $1`, [hiddenId]);
+    const ready = await get(`/api/activities/${hiddenId}`, tokens.clientCeiba);
+    assert.equal(ready.body.activity.report, null);
+    await pool.query(`update activities set status = 'validated' where id = $1`, [hiddenId]);
     const visible = await get(`/api/activities/${hiddenId}`, tokens.clientCeiba);
     assert.equal(visible.body.activity.report, 'Borrador del técnico');
   });

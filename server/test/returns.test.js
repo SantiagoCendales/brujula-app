@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, before, describe, test } from 'node:test';
 import { bearer, loginAs, request, setup, teardown } from './helpers.js';
+import { subscribe } from '../src/realtime/activityEvents.js';
 
 let app;
 let ids;
@@ -86,12 +87,58 @@ describe('returning a report', () => {
     assert.equal((await post(`/api/activities/${id}/return`, tokens.cec, { note: 'Revisar' })).status, 409);
   });
 
-  test('the client does not see the report while it is being corrected', async () => {
+  test('the client sees the previous status without internal returns until validation', async () => {
     const id = await createReportReady();
-    await post(`/api/activities/${id}/return`, tokens.cec, { note: 'Falta detalle' });
-    const response = await request(app).get(`/api/activities/${id}`).set(bearer(tokens.clientCondor));
-    assert.equal(response.body.activity.status, 'returned');
-    assert.equal(response.body.activity.report, null);
+    const events = [];
+    const internalEvents = [];
+    const unsubscribe = subscribe({ user: { role: 'client', company_id: ids.companies.condor }, send: (event) => events.push(event) });
+    const unsubscribeInternal = subscribe({ user: { role: 'cec' }, send: (event) => internalEvents.push(event) });
+    try {
+      for (let cycle = 0; cycle < 2; cycle++) {
+        assert.equal((await post(`/api/activities/${id}/return`, tokens.cec, { note: 'Falta detalle' })).status, 200);
+        const detail = await request(app).get(`/api/activities/${id}`).set(bearer(tokens.clientCondor));
+        assert.equal(detail.body.activity.status, 'report_ready');
+        assert.equal(detail.body.activity.technician, null);
+        assert.equal(detail.body.activity.report, null);
+        assert.deepEqual(detail.body.activity.photos, []);
+        assert.deepEqual(detail.body.activity.events, []);
+        const list = await request(app).get('/api/activities?status=report_ready').set(bearer(tokens.clientCondor));
+        assert.ok(list.body.activities.some((activity) => activity.id === id && activity.status === 'report_ready'));
+        const hidden = await request(app).get('/api/activities?status=returned').set(bearer(tokens.clientCondor));
+        assert.deepEqual(hidden.body.activities, []);
+        const byTechnician = await request(app).get(`/api/activities?technician_id=${ids.users.technician1}`).set(bearer(tokens.clientCondor));
+        assert.ok(!byTechnician.body.activities.some((activity) => activity.id === id));
+        const history = await request(app).get(`/api/vehicles/${ids.vehicles.condor1}`).set(bearer(tokens.clientCondor));
+        assert.equal(history.body.history.find((activity) => activity.id === id).status, 'report_ready');
+        const counts = await request(app).get('/api/activities/counts').set(bearer(tokens.clientCondor));
+        assert.equal(counts.body.counts.returned, 0);
+        assert.equal(counts.body.counts.report_ready, list.body.activities.length);
+
+        assert.equal((await request(app).patch(`/api/activities/${id}/report`).set(bearer(tokens.technician1)).send({ report: `Corrección ${cycle}` })).status, 200);
+        const uploaded = await uploadPhoto(id, tokens.technician1, 'other');
+        assert.equal(uploaded.status, 201);
+        assert.equal((await request(app).delete(`/api/photos/${uploaded.body.photo_id}`).set(bearer(tokens.technician1))).status, 200);
+        assert.equal((await post(`/api/activities/${id}/comments`, tokens.technician1, { body: 'Novedad pública', visibility: 'public' })).status, 201);
+        assert.equal(events.at(-1).change, 'comment_added');
+        assert.equal(events.at(-1).status, 'report_ready');
+        assert.equal(events.at(-1).technician_id, null);
+        assert.equal((await post(`/api/activities/${id}/resubmit`, tokens.technician1)).status, 200);
+        const resubmitted = await request(app).get(`/api/activities/${id}`).set(bearer(tokens.clientCondor));
+        assert.equal(resubmitted.body.activity.report, null);
+        assert.deepEqual(resubmitted.body.activity.photos, []);
+      }
+      assert.deepEqual(events.map((event) => event.change), ['comment_added', 'comment_added']);
+      assert.equal(internalEvents.filter((event) => event.change === 'returned').length, 2);
+      assert.equal(internalEvents.filter((event) => event.change === 'resubmitted').length, 2);
+      assert.equal((await post(`/api/activities/${id}/validate`, tokens.cec)).status, 200);
+      assert.equal(events.at(-1).change, 'validated');
+      const validated = await request(app).get(`/api/activities/${id}`).set(bearer(tokens.clientCondor));
+      assert.equal(validated.body.activity.report, 'Corrección 1');
+      assert.equal(validated.body.activity.photos.length, 4);
+    } finally {
+      unsubscribe();
+      unsubscribeInternal();
+    }
   });
 });
 

@@ -17,6 +17,7 @@ import {
   NOW,
   recordEvent,
   transition,
+  visibleStatusSql,
 } from '../domain/activities.js';
 import {
   ACTIVITY_TYPES,
@@ -54,8 +55,9 @@ activitiesRouter.get('/', async (req, res) => {
 activitiesRouter.get('/counts', async (req, res) => {
   const params = [];
   const scope = activityScope(req.user, params);
+  const visibleStatus = visibleStatusSql(req.user);
   const { rows } = await pool.query(
-    `select a.status, count(*)::int as total from activities a where ${scope} group by a.status`,
+    `select ${visibleStatus} as status, count(*)::int as total from activities a where ${scope} group by ${visibleStatus}`,
     params,
   );
   const counts = Object.fromEntries(STATUSES.map((status) => [status, 0]));

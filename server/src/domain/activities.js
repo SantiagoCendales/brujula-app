@@ -23,10 +23,17 @@ function person(id, name) {
   return id ? { id, name } : null;
 }
 
-export function toActivitySummary(row) {
+export function visibleStatusSql(user) {
+  return user.role === 'client'
+    ? "(case when a.status = 'returned' then 'report_ready'::activity_status else a.status end)"
+    : 'a.status';
+}
+
+export function toActivitySummary(row, user) {
+  const isClientReturn = user.role === 'client' && row.status === 'returned';
   return {
     id: row.id,
-    status: row.status,
+    status: isClientReturn ? 'report_ready' : row.status,
     type: row.type,
     description: row.description,
     scheduled_for: row.scheduled_for,
@@ -34,7 +41,7 @@ export function toActivitySummary(row) {
     updated_at: row.updated_at,
     company: { id: row.company_id, name: row.company_name },
     vehicle: { id: row.vehicle_id, plate: row.plate, make: row.make, model: row.model },
-    technician: person(row.technician_id, row.technician_name),
+    technician: isClientReturn ? null : person(row.technician_id, row.technician_name),
     performed_by: person(row.performed_by, row.performed_by_name),
   };
 }
@@ -76,7 +83,11 @@ export async function listActivities(db, user, filters = {}) {
   for (const column of EQUALITY_FILTERS) {
     if (filters[column] === undefined) continue;
     params.push(filters[column]);
-    conditions.push(`a.${column} = $${params.length}`);
+    const field = column === 'status' ? visibleStatusSql(user)
+      : column === 'technician_id' && user.role === 'client'
+        ? "(case when a.status = 'returned' then null else a.technician_id end)"
+        : `a.${column}`;
+    conditions.push(`${field} = $${params.length}`);
   }
 
   if (filters.plate) {
@@ -96,7 +107,7 @@ export async function listActivities(db, user, filters = {}) {
     `${ACTIVITY_SELECT} where ${conditions.join(' and ')} order by a.created_at desc limit 200`,
     params,
   );
-  return rows.map(toActivitySummary);
+  return rows.map((row) => toActivitySummary(row, user));
 }
 
 // Answers 404 both when the activity does not exist and when the user may not see it.
@@ -134,7 +145,7 @@ export async function getActivityDetail(db, id, user) {
   const photoCategories = new Set(photos.map((photo) => photo.category));
 
   return {
-    ...toActivitySummary(row),
+    ...toActivitySummary(row, user),
     arrival: location(row.arrived_at, row.arrival_lat, row.arrival_lng, row.arrival_accuracy_m),
     finish: location(row.finished_at, row.finish_lat, row.finish_lng, row.finish_accuracy_m),
     report: reportVisible ? row.report : null,

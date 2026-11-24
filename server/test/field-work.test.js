@@ -95,15 +95,18 @@ describe('the full MVP flow', () => {
     assert.ok(history.body.activities.some((activity) => activity.id === id));
 
     const clientView = await request(app).get(`/api/activities/${id}`).set(bearer(tokens.clientCondor));
-    assert.equal(clientView.body.activity.report, 'Se instaló el GPS y reporta bien.');
-    assert.equal(clientView.body.activity.photos.length, 4);
-
-    const image = await request(app).get(clientView.body.activity.photos[0].url);
-    assert.equal(image.status, 200);
-    assert.equal(image.headers['content-type'], 'image/jpeg');
+    assert.equal(clientView.body.activity.report, null);
+    assert.deepEqual(clientView.body.activity.photos, []);
 
     const validated = await post(`/api/activities/${id}/validate`, tokens.cec);
     assert.equal(validated.body.activity.status, 'validated');
+
+    const validatedView = await request(app).get(`/api/activities/${id}`).set(bearer(tokens.clientCondor));
+    assert.equal(validatedView.body.activity.report, 'Se instaló el GPS y reporta bien.');
+    assert.equal(validatedView.body.activity.photos.length, 4);
+    const image = await request(app).get(validatedView.body.activity.photos[0].url);
+    assert.equal(image.status, 200);
+    assert.equal(image.headers['content-type'], 'image/jpeg');
 
     const delivered = await post(`/api/activities/${id}/deliver`, tokens.coordinator);
     assert.equal(delivered.body.activity.status, 'delivered');
