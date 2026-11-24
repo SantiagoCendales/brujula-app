@@ -13,6 +13,7 @@ import { notificationsRouter } from './routes/notifications.js';
 import { permissionsRouter } from './routes/permissions.js';
 import { photosRouter } from './routes/photos.js';
 import { usersRouter } from './routes/users.js';
+import { vehicleRequestsRouter } from './routes/vehicleRequests.js';
 import { vehiclesRouter } from './routes/vehicles.js';
 
 export function createApp() {
@@ -35,6 +36,7 @@ export function createApp() {
   app.use('/api/companies', companiesRouter);
   app.use('/api/users', usersRouter);
   app.use('/api/vehicles', vehiclesRouter);
+  app.use('/api/vehicle-requests', vehicleRequestsRouter);
   app.use('/api/activities', activitiesRouter);
   app.use('/api/photos', photosRouter);
   app.use('/api/events', eventsRouter);

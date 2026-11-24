@@ -163,9 +163,43 @@ Admin puede configurar todos los roles; Coordinador solo Cliente, Técnico y CEC
 
 La placa se guarda en mayúsculas y es única. `vin`, `year` y `color` son opcionales y llegan en `null` si no están registrados; por ahora las rutas no permiten modificarlos. El técnico ve vehículos asociados a actividades asignadas o ejecutadas por él; el historial completo está disponible para los vehículos que tiene asignados actualmente y, para los demás, solo ve sus propias intervenciones.
 
+### Solicitudes de placa nueva ✅
+
+Un cliente no crea vehículos: cuando un carro entra a su flota pide el servicio con **placa nueva** e informa las características (placa, marca, modelo, VIN, año y color), el tipo de servicio, departamento, ciudad, dirección exacta, fecha y hora preferidas. Un coordinador o admin puede ajustarlos antes de **aprobar** según la disponibilidad; se crean el vehículo y la actividad `requested` con los datos definitivos y se avisa al cliente. Al **rechazarla** debe dejar una nota que ve el cliente.
+
+| Método | Ruta | Quién | Recibe | Devuelve |
+|---|---|---|---|---|
+| GET | `/vehicle-requests?status=pending` | client (las de su empresa), coordinator, admin | `status` opcional: `pending`, `approved` o `rejected` | `{ requests: [request] }`, de la más reciente a la más antigua |
+| GET | `/vehicle-requests/:id` | client de la empresa, coordinator, admin | — | `{ request }`; solicitud ajena o inaccesible responde 404 |
+| POST | `/vehicle-requests` | client, con el permiso `create_activity` | `multipart/form-data`: `data` con JSON `{ plate, make?, model?, vin?, year?, color?, type, description?, department, city, location, scheduled_for, resubmitted_from_id? }` y archivo obligatorio `ownership_photo` (JPEG, PNG o WebP, máximo 8 MB) | `201 { request }` |
+| GET | `/vehicle-requests/:id/ownership-photo` | client de la empresa, coordinator, admin | — | Imagen; solicitud ajena o foto inexistente responde 404 |
+| POST | `/vehicle-requests/:id/approve` | coordinator, admin, con `create_vehicle` y `create_activity` | `{ department?, city?, location?, scheduled_for? }`: ajustes opcionales | `{ request }` con datos originales, `vehicle_id` y `activity_id` |
+| POST | `/vehicle-requests/:id/reject` | coordinator, admin, con `create_vehicle` | `{ note }` (3 a 1000 caracteres) | `{ request }` |
+
+```json
+"request": {
+  "id": 4, "status": "pending", "plate": "NUE123", "make": "Renault", "model": "Master",
+  "vin": "9BWZZZ377VT004251", "year": 2024, "color": "Blanco",
+  "type": "gps_install", "description": "Instalar GPS", "department": "Cundinamarca",
+  "city": "Bogotá", "location": "Calle 1 # 2-3",
+  "scheduled_for": "2030-01-15T19:00:00.000Z", "review_note": null, "resubmitted_from_id": null,
+  "previous_review_note": null, "has_resubmission": false, "vehicle_id": null, "activity_id": null,
+  "created_at": "2026-11-23T22:00:00.000Z", "reviewed_at": null, "has_ownership_photo": true,
+  "company": { "id": 1, "name": "Transportes Cóndor" },
+  "requested_by": { "id": 7, "name": "Camila Cóndor" }, "reviewed_by": null
+}
+```
+
+- Técnico y CEC no acceden a la lista (`403`). La placa se guarda en mayúsculas y sin espacios; `year` es opcional, entero entre 0 y 9999; `vin` y `color` también son opcionales. La foto se conserva fuera del repositorio y solo se entrega con sesión autorizada; solicitudes anteriores pueden no tenerla.
+- Una placa que ya está en la flota del cliente responde `409 plate_exists`; una pendiente repetida de su empresa, `409 request_pending`. Si la placa pertenece a **otra empresa** la solicitud se acepta igual, para no revelarla; al aprobar, `409 plate_exists` avisa al personal, que puede rechazarla.
+- Una solicitud ya revisada responde `409 invalid_status` al aprobar o rechazar.
+- Para corregir una solicitud rechazada de su empresa, el cliente envía una nueva con `resubmitted_from_id` y todos los datos y la foto (el front puede reutilizar la foto anterior o reemplazarla). La anterior no se modifica; la nueva muestra al personal el motivo anterior. Cada solicitud rechazada puede reenviarse una sola vez; otra tentativa responde `409 already_resubmitted`. La corrección de un nuevo rechazo parte de la nueva solicitud.
+- Al aprobar, la solicitud conserva los datos originales; la actividad muestra los definitivos. El evento `request_approved` guarda `requested` y `approved` con dirección y programación, y el cliente recibe una notificación que abre la actividad. El evento `created` queda a nombre del cliente. En solicitudes anteriores `city` y `department` pueden ser `null`; el personal puede completarlos al aprobar.
+- Cada cambio se avisa por `/events` con `change` `vehicle_request_created`, `vehicle_request_approved` o `vehicle_request_rejected` y `activity_id: null`, a coordinador, admin y a los clientes de esa empresa. El rechazo también queda en la campanita de los clientes de la empresa con su motivo; las solicitudes nuevas del personal siguen siendo avisos emergentes y en la lista.
+
 ### Notificaciones ✅
 
-Se conservan por usuario desde la activación de la función, con las reglas de los avisos actuales; no se reconstruyen notificaciones anteriores. Solo aparecen mientras el usuario tenga permiso para ver la actividad, y las acciones propias no generan avisos para el actor.
+Se conservan por usuario desde la activación de la función, con las reglas de los avisos actuales; no se reconstruyen notificaciones anteriores, incluidos rechazos previos a la migración `012`. Solo aparecen mientras el usuario tenga permiso para ver la actividad o pertenezca a la empresa de la solicitud, y las acciones propias no generan avisos para el actor.
 
 Al finalizar el trabajo, los clientes de la empresa reciben un aviso `finished`; esto no les muestra el informe ni las fotos antes de la validación.
 
@@ -177,9 +211,9 @@ Al finalizar el trabajo, los clientes de la empresa reciben un aviso `finished`;
 | GET | `/notifications/preferences` | `{ preferences: [{ type, enabled, mandatory }] }`: los avisos emergentes del rol del usuario; los `mandatory` no se pueden desactivar |
 | PATCH | `/notifications/preferences` | `{ type, enabled }` → `{ ok: true }`; un `type` que no existe o es obligatorio para el rol responde 404 |
 
-Las preferencias son por usuario y solo silencian el aviso emergente y la vibración; la campanita siempre guarda el historial. Tipos que cada rol puede silenciar (coinciden con el `change` del evento): Admin y Coordinador `created`, `arrived`, `finished`, `resubmitted`, `validated`; CEC `finished`, `resubmitted`; Cliente `arrived`, `finished`, `delivered`. Del técnico, `assigned` y `returned` son obligatorios. Por defecto todos están activados.
+Las preferencias son por usuario y solo silencian el aviso emergente y la vibración; la campanita siempre guarda el historial. Tipos que cada rol puede silenciar (coinciden con el `change` del evento): Admin y Coordinador `created`, `arrived`, `finished`, `resubmitted`, `validated`, `vehicle_request`; CEC `finished`, `resubmitted`; Cliente `arrived`, `finished`, `delivered`, `request_approved`, `request_rejected`. Del técnico, `assigned` y `returned` son obligatorios. Por defecto todos están activados.
 
-Cada aviso incluye `id`, `read_at`, `type`, `created_at`, `activity_id`, `actor_name`, `plate` y `activity_type`.
+Cada aviso incluye `id`, `read_at`, `type`, `created_at`, `activity_id`, `vehicle_request_id`, `actor_name`, `plate`, `activity_type` y `review_note`. En un rechazo `activity_id` es `null`, `vehicle_request_id` identifica la solicitud y `review_note` contiene el motivo; en los demás avisos estos dos últimos campos son `null`.
 
 ### Actividades ✅
 
@@ -230,7 +264,7 @@ Las novedades públicas son visibles para todos los usuarios que pueden ver la a
 ```json
 "activity_summary": {
   "id": 12, "status": "on_site", "type": "gps_install", "description": "Instalar GPS y probar señal",
-  "scheduled_for": "2026-11-07T14:00:00.000Z", "created_at": "2026-11-07T13:00:00.000Z", "updated_at": "2026-11-07T14:05:12.000Z",
+  "scheduled_for": "2026-11-07T14:00:00.000Z", "location": null, "city": null, "department": null, "created_at": "2026-11-07T13:00:00.000Z", "updated_at": "2026-11-07T14:05:12.000Z",
   "company":      { "id": 1, "name": "Transportes Cóndor" },
   "vehicle":      { "id": 1, "plate": "DEMO-101", "make": "Toyota", "model": "Hilux" },
   "technician":   { "id": 3, "name": "Tomás Técnico" },
@@ -238,7 +272,7 @@ Las novedades públicas son visibles para todos los usuarios que pueden ver la a
 }
 ```
 
-`technician` y `performed_by` pueden venir en `null`.
+`technician` y `performed_by` pueden venir en `null`. `location` (dirección), `city` y `department` se informan en actividades creadas al aprobar una solicitud de placa nueva; pueden ser `null` en actividades y solicitudes anteriores.
 
 `activity_detail` trae lo mismo que el resumen, más:
 
@@ -280,7 +314,7 @@ event: activity.changed
 data: {"type":"activity.changed","activity_id":12,"status":"on_site","change":"arrived","actor_id":3,"technician_id":3}
 ```
 
-- `change`: qué pasó (`created`, `assigned`, `arrived`, `report_updated`, `photo_added`, `photo_deleted`, `receipt_recorded`, `finished`, `validated`, `returned`, `resubmitted`, `delivered`, `comment_added`, `comment_updated`).
+- `change`: qué pasó (`created`, `assigned`, `arrived`, `report_updated`, `photo_added`, `photo_deleted`, `receipt_recorded`, `finished`, `validated`, `returned`, `resubmitted`, `delivered`, `comment_added`, `comment_updated`, `request_approved`; y, con `activity_id: null`, `vehicle_request_created`, `vehicle_request_approved`, `vehicle_request_rejected`).
 - `actor_id`: quién lo hizo. La app no le muestra notificaciones a nadie por sus propias acciones.
 - `technician_id`: quién la tiene ahora (o `null`).
 

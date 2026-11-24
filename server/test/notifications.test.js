@@ -110,6 +110,8 @@ test('preferences are per user, limited to what each role can mute and never aff
     { type: 'arrived', enabled: true, mandatory: false },
     { type: 'finished', enabled: true, mandatory: false },
     { type: 'delivered', enabled: true, mandatory: false },
+    { type: 'request_approved', enabled: true, mandatory: false },
+    { type: 'request_rejected', enabled: true, mandatory: false },
   ]);
 
   assert.equal((await patch(tokens.clientCondor, { type: 'arrived', enabled: false })).status, 200);

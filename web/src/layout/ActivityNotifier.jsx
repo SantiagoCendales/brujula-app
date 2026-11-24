@@ -1,4 +1,4 @@
-import { BellRing, CircleCheckBig, FileCheck, Inbox, MapPin, PackageCheck, Undo2 } from 'lucide-react';
+import { BellRing, CarFront, CircleCheckBig, CircleX, FileCheck, Inbox, MapPin, PackageCheck, Undo2 } from 'lucide-react';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -106,9 +106,34 @@ const RULES = [
     title: 'Tu informe está listo',
     Icon: PackageCheck,
   },
+  {
+    roles: ['coordinator', 'admin'],
+    type: 'vehicle_request',
+    matches: (event) => event.change === 'vehicle_request_created',
+    title: 'Solicitud de placa nueva',
+    Icon: CarFront,
+    viewLabel: 'Ver solicitud',
+    path: (home) => `${home}/vehicles`,
+  },
+  {
+    roles: ['client'],
+    type: 'request_approved',
+    matches: (event) => event.change === 'request_approved',
+    title: 'Aprobaron tu placa nueva',
+    Icon: CircleCheckBig,
+  },
+  {
+    roles: ['client'],
+    type: 'request_rejected',
+    matches: (event) => event.change === 'vehicle_request_rejected',
+    title: 'Rechazaron tu solicitud de placa nueva',
+    Icon: CircleX,
+    viewLabel: 'Ver solicitud',
+    path: (home) => `${home}/vehicles`,
+  },
 ];
 
-function NotificationToast({ Icon, title, activity, onView, onDismiss }) {
+function NotificationToast({ Icon, title, activity, viewLabel, onView, onDismiss }) {
   return (
     // Sonner gives custom toasts no width on wide screens, so the card takes Sonner's own --width (capped on phones).
     <div className="flex w-(--width) max-w-full items-start gap-3 rounded-2xl border bg-card p-4 text-card-foreground shadow-lg">
@@ -131,7 +156,7 @@ function NotificationToast({ Icon, title, activity, onView, onDismiss }) {
         )}
         <div className="mt-3 flex gap-2">
           <Button size="lg" onClick={onView}>
-            Ver actividad
+            {viewLabel}
           </Button>
           <Button size="lg" variant="ghost" onClick={onDismiss}>
             Después
@@ -155,20 +180,25 @@ export default function ActivityNotifier() {
       if (!rule) return;
 
       const [{ activity }, { preferences }] = await Promise.all([
-        request(`/activities/${event.activity_id}`).catch(() => ({ activity: null })),
+        // Plate request changes belong to no activity yet.
+        event.activity_id
+          ? request(`/activities/${event.activity_id}`).catch(() => ({ activity: null }))
+          : { activity: null },
         request('/notifications/preferences').catch(() => ({ preferences: [] })),
       ]);
       // Muting only silences the pop-up and vibration; the bell keeps the history.
       if (preferences.some((preference) => preference.type === rule.type && !preference.enabled)) return;
 
       navigator.vibrate?.(VIBRATION_MS);
-      const detailPath = `${homePathFor(user.role)}/activities/${event.activity_id}`;
+      const home = homePathFor(user.role);
+      const detailPath = rule.path ? rule.path(home) : `${home}/activities/${event.activity_id}`;
       toast.custom(
         (toastId) => (
           <NotificationToast
             Icon={rule.Icon}
             title={typeof rule.title === 'function' ? rule.title(activity) : rule.title}
             activity={activity}
+            viewLabel={rule.viewLabel ?? 'Ver actividad'}
             onView={() => {
               toast.dismiss(toastId);
               navigate(detailPath);

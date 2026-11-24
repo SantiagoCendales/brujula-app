@@ -17,7 +17,7 @@ import { useApi } from '@/lib/useApi';
 const TABS = {
   coordinator: [
     { to: '/coordinator', label: 'Actividades' },
-    { to: '/coordinator/vehicles', label: 'Vehículos' },
+    { to: '/coordinator/vehicles', label: 'Vehículos', pendingRequests: true },
   ],
   technician: [
     { to: '/technician', label: 'Pendientes' },
@@ -33,6 +33,22 @@ const TABS = {
   ],
 };
 TABS.admin = TABS.coordinator;
+
+// Plate requests waiting for staff review, shown next to the Vehículos tab.
+function PendingRequestsBadge() {
+  const { data, reload } = useApi('/vehicle-requests?status=pending');
+  useActivityChanges(reload);
+  const count = data?.requests.length ?? 0;
+  if (!count) return null;
+  return (
+    <span
+      className="ml-2 rounded-full bg-destructive px-1.5 text-xs text-destructive-foreground"
+      aria-label={`${count} solicitudes de placa nueva pendientes`}
+    >
+      {count}
+    </span>
+  );
+}
 
 function NavTabs({ role }) {
   const { pathname } = useLocation();
@@ -57,6 +73,7 @@ function NavTabs({ role }) {
           }`}
         >
           {tab.label}
+          {tab.pendingRequests && <PendingRequestsBadge />}
         </Link>
       ))}
     </nav>

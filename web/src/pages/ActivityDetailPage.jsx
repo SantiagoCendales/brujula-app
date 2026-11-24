@@ -165,6 +165,9 @@ export default function ActivityDetailPage({ backPath }) {
                 {activity.vehicle.make} {activity.vehicle.model}
               </Row>
               <Row label="Programada">{formatDateTime(activity.scheduled_for)}</Row>
+              {activity.department && <Row label="Departamento">{activity.department}</Row>}
+              {activity.city && <Row label="Ciudad">{activity.city}</Row>}
+              {activity.location && <Row label={activity.city || activity.department ? 'Dirección' : 'Lugar'}>{activity.location}</Row>}
               <Row label="Técnico asignado">{activity.technician?.name ?? '—'}</Row>
               <Row label="Ejecutada por">{activity.performed_by?.name ?? '—'}</Row>
               <Row label="Llegada">

@@ -26,6 +26,8 @@ function notificationTitle(item, role) {
     case 'resubmitted': return `${item.actor_name} reenvió el informe corregido`;
     case 'validated': return 'Informe validado: listo para entregar';
     case 'delivered': return 'Tu informe está listo';
+    case 'request_approved': return 'Aprobaron tu placa nueva';
+    case 'request_rejected': return 'Rechazaron tu solicitud de placa nueva';
     default: return 'Novedad de actividad';
   }
 }
@@ -45,7 +47,9 @@ export default function NotificationsPanel({ onOpenActivity, onRead }) {
     try {
       if (!item.read_at) await request(`/notifications/${item.id}/read`, { method: 'POST' });
       onOpenActivity();
-      navigate(`${homePathFor(user.role)}/activities/${item.activity_id}`);
+      navigate(item.vehicle_request_id
+        ? `${homePathFor(user.role)}/new/${item.vehicle_request_id}`
+        : `${homePathFor(user.role)}/activities/${item.activity_id}`);
     } catch (requestError) {
       setErrorMessage(requestError.message);
     } finally {
@@ -84,10 +88,11 @@ export default function NotificationsPanel({ onOpenActivity, onRead }) {
           <CardContent className="flex flex-col gap-2">
             <p className="font-semibold">{notificationTitle(item, user.role)} {!item.read_at && <span className="text-primary">· Nueva</span>}</p>
             <p>{item.plate} · {ACTIVITY_TYPE_LABELS[item.activity_type] ?? item.activity_type}</p>
+            {item.review_note && <p className="break-words text-sm">Motivo: {item.review_note}</p>}
             <p className="text-sm text-muted-foreground">{formatDateTime(item.created_at)}</p>
-            <Button size="touch" variant="outline" disabled={busy !== null} onClick={() => open(item)}>
-              {busy?.id === item.id && busy.action === 'open' ? 'Abriendo…' : 'Ver actividad'}
-            </Button>
+            {(item.activity_id || item.vehicle_request_id) && <Button size="touch" variant="outline" disabled={busy !== null} onClick={() => open(item)}>
+              {busy?.id === item.id && busy.action === 'open' ? 'Abriendo…' : item.vehicle_request_id ? 'Corregir solicitud' : 'Ver actividad'}
+            </Button>}
             {!item.read_at && (
               <Button size="touch" variant="ghost" disabled={busy !== null} onClick={() => markRead(item)}>
                 {busy?.id === item.id && busy.action === 'read' ? 'Marcando…' : 'Marcar como leída'}

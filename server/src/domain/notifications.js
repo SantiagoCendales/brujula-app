@@ -5,15 +5,16 @@ const ROLE_CHANGES = {
   resubmitted: ['coordinator', 'admin', 'cec'],
   validated: ['coordinator', 'admin'],
   delivered: ['client'],
+  request_approved: ['client'],
 };
 
 // Types each role can mute (they match the event `change`). The technician's assignment and return notices
 // are not configurable: missing one leaves work unattended.
 const MUTABLE_TYPES = {
-  admin: ['created', 'arrived', 'finished', 'resubmitted', 'validated'],
-  coordinator: ['created', 'arrived', 'finished', 'resubmitted', 'validated'],
+  admin: ['created', 'arrived', 'finished', 'resubmitted', 'validated', 'vehicle_request'],
+  coordinator: ['created', 'arrived', 'finished', 'resubmitted', 'validated', 'vehicle_request'],
   cec: ['finished', 'resubmitted'],
-  client: ['arrived', 'finished', 'delivered'],
+  client: ['arrived', 'finished', 'delivered', 'request_approved', 'request_rejected'],
   technician: [],
 };
 const MANDATORY_TYPES = { technician: ['assigned', 'returned'] };
@@ -44,5 +45,15 @@ export async function createNotifications(db, { eventId, activityId, userId, typ
        or ($6::boolean and u.role = 'technician' and u.id = a.technician_id)
      )`,
     [eventId, activityId, userId, roles, type, technician],
+  );
+}
+
+export async function createRejectionNotifications(db, { requestId, userId }) {
+  await db.query(
+    `insert into notifications (user_id, vehicle_request_id)
+     select u.id, r.id from vehicle_requests r
+     join users u on u.company_id = r.company_id
+     where r.id = $1 and u.active and u.role = 'client' and u.id <> $2`,
+    [requestId, userId],
   );
 }

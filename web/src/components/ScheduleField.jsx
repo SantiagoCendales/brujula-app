@@ -25,9 +25,11 @@ function withTime(date, hours, minutes) {
   return result;
 }
 
-// Optional date (calendar) and time (hour and minute selects). `value` is a Date or null.
-export default function ScheduleField({ value, onChange }) {
+// Date (calendar) and time (hour and minute selects). `value` is a Date or null. Optional unless `required`.
+export default function ScheduleField({ value, onChange, required = false }) {
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const hours = value && !HOURS.includes(value.getHours()) ? [...HOURS, value.getHours()].sort((a, b) => a - b) : HOURS;
+  const minutes = value && !MINUTES.includes(value.getMinutes()) ? [...MINUTES, value.getMinutes()].sort((a, b) => a - b) : MINUTES;
 
   return (
     <div className="flex flex-col gap-3">
@@ -43,7 +45,7 @@ export default function ScheduleField({ value, onChange }) {
               {value ? (
                 <span className="first-letter:uppercase">{dayFormat.format(value)}</span>
               ) : (
-                <span className="text-muted-foreground">Elegir fecha (opcional)</span>
+                <span className="text-muted-foreground">{required ? 'Elegir fecha' : 'Elegir fecha (opcional)'}</span>
               )}
             </Button>
           </PopoverTrigger>
@@ -78,7 +80,7 @@ export default function ScheduleField({ value, onChange }) {
             onChange={(event) => onChange(withTime(value, Number(event.target.value), value.getMinutes()))}
             className="w-24"
           >
-            {HOURS.map((hour) => (
+            {hours.map((hour) => (
               <NativeSelectOption key={hour} value={String(hour)}>
                 {String(hour).padStart(2, '0')}
               </NativeSelectOption>
@@ -92,7 +94,7 @@ export default function ScheduleField({ value, onChange }) {
             onChange={(event) => onChange(withTime(value, value.getHours(), Number(event.target.value)))}
             className="w-24"
           >
-            {MINUTES.map((minute) => (
+            {minutes.map((minute) => (
               <NativeSelectOption key={minute} value={String(minute)}>
                 {String(minute).padStart(2, '0')}
               </NativeSelectOption>

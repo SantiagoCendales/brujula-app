@@ -11,6 +11,12 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 
 ## 📣 Novedades que afectan al front
 
+- **[placa nueva]** En «Nueva solicitud», el cliente tiene el enlace «¿Es una placa nueva? Solicítala aquí» (`components/NewVehicleFields.jsx`, `pages/NewActivityPage.jsx`). La solicitud queda en «Mis vehículos»; Admin y Coordinador la revisan arriba de la pestaña Vehículos, que muestra un contador de pendientes (`vehicles/VehicleRequests.jsx`). Al aprobar, se crea el vehículo con VIN, año y color, y la actividad con su lugar (`location`, nuevo en el detalle). Rutas y reglas en `docs/api.md`, «Solicitudes de placa nueva».
+- **[placa nueva]** La foto de la tarjeta de propiedad es obligatoria para solicitudes nuevas y se puede consultar desde la solicitud con acceso restringido. Los errores de validación identifican los campos que deben revisarse.
+- **[placa nueva]** El cliente indica departamento, ciudad, dirección exacta y fecha y hora preferidas. Al aprobar, Admin o Coordinador puede ajustarlos; el cliente recibe un aviso y ve la programación definitiva en la actividad. La solicitud conserva los datos originales.
+- **[placa nueva]** Una solicitud rechazada puede corregirse desde «Mis vehículos» o su notificación. Se conservan el rechazo y su motivo, y el personal ve ese motivo en el nuevo envío. La foto anterior se puede reutilizar o reemplazar.
+- **[notificaciones]** Las aprobaciones y los nuevos rechazos de placa quedan en la campanita del cliente. El rechazo muestra allí el motivo, incluso después de que deje de aparecer en la lista de solicitudes; no se reconstruyen rechazos anteriores.
+- **[placa nueva]** Hay migraciones nuevas (`009` a `013`): después del `git pull`, correr `npm run migrate -w server`.
 - **[vehículos]** En Admin y Coordinador, la lista de vehículos se agrupa por cliente en orden alfabético, con la cantidad. Las placas aparecen al tocar el cliente (todas a la vez mientras se busca por placa) y el cliente abierto se recuerda al volver desde un vehículo. Es la prop `grouped` de `pages/VehiclesPage.jsx`; los demás roles no cambian.
 - **[notificaciones]** Todos los roles tienen el engranaje de Configuración → «Notificaciones», donde se activan o desactivan los avisos emergentes y la vibración (`pages/NotificationPreferencesPage.jsx`). La campanita sigue guardando todo; los avisos del técnico (asignación y devolución) son obligatorios. Cada regla de `ActivityNotifier` tiene un `type`.
 - **[notificaciones]** Al pulsar «Terminé», el cliente recibe un aviso de que el técnico terminó el trabajo; el informe sigue oculto hasta su validación.
@@ -55,8 +61,6 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 
 Abordarlas de a una, actualizando su estado aquí antes de empezar.
 
-- [ ] **Solicitud de nueva placa:** impedir que el cliente cree vehículos directamente; permitirle solicitar una placa nueva y crear el vehículo en el sistema una vez validada la solicitud.
-- [ ] **Datos de la solicitud:** pedir lugar, fecha y hora al cliente al crear una solicitud de nueva placa.
 
 ### Componentes de front pendientes
 
@@ -64,6 +68,7 @@ Los componentes van en `web/src/components/`, se arman con los componentes de `c
 
 ## 🔄 En curso
 
+- **Solicitud de placa nueva y sus datos:** el cliente, al crear una solicitud, puede elegir «placa nueva» e informar las características del vehículo, el lugar, la fecha y la hora; Admin y Coordinador la aprueban (se crea el vehículo y la actividad) o la rechazan con una nota. Pendiente de pruebas del usuario.
 - **Vehículos agrupados:** Admin y Coordinador ven una lista de clientes; las placas se muestran al tocar cada uno. Pendiente de pruebas del usuario.
 - **Preferencias de notificaciones:** cada usuario elige qué avisos emergentes y vibraciones recibe desde Configuración; la campanita conserva el historial y los avisos críticos del técnico son obligatorios. Pendiente de pruebas del usuario.
 - **Características de vehículos:** consultar VIN, año y color en el detalle para todos los roles, sin edición de esos datos por ahora.

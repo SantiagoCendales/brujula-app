@@ -35,6 +35,7 @@ export const EVENT_TYPE_LABELS = {
   photo_added: 'Foto agregada',
   photo_deleted: 'Foto eliminada',
   receipt_recorded: 'Constancia de recibido registrada',
+  request_approved: 'Placa nueva aprobada',
 };
 
 export function eventLabel(event) {
@@ -50,11 +51,20 @@ const NOTIFICATION_TYPE_LABELS = {
   finished: 'Un técnico envió un informe',
   resubmitted: 'Un técnico reenvió un informe corregido',
   validated: 'Informe validado: listo para entregar',
+  vehicle_request: 'Solicitud de placa nueva',
 };
 const CLIENT_NOTIFICATION_TYPE_LABELS = {
   arrived: 'El técnico llegó a tu vehículo',
   finished: 'El técnico terminó el trabajo',
   delivered: 'Tu informe está listo',
+  request_approved: 'Aprobaron tu placa nueva',
+  request_rejected: 'Rechazaron tu solicitud de placa nueva',
+};
+
+export const VEHICLE_REQUEST_STATUS_LABELS = {
+  pending: 'Pendiente',
+  approved: 'Aprobada',
+  rejected: 'Rechazada',
 };
 
 export function notificationTypeLabel(type, role) {

@@ -68,7 +68,7 @@ export default function App() {
         <Route path="settings/notifications" element={<NotificationPreferencesPage />} />
         <Route path="permissions" element={<PermissionsPage />} />
         <Route path="activities/:id" element={<ActivityDetailPage backPath="/coordinator" />} />
-        <Route path="vehicles" element={<VehiclesPage title="Vehículos" basePath="/coordinator/vehicles" grouped />} />
+        <Route path="vehicles" element={<VehiclesPage title="Vehículos" basePath="/coordinator/vehicles" grouped requests="review" />} />
         <Route
           path="vehicles/:id"
           element={<VehicleDetailPage backPath="/coordinator/vehicles" activitiesPath="/coordinator/activities" />}
@@ -136,10 +136,11 @@ export default function App() {
           }
         />
         <Route path="new" element={<NewActivityPage basePath="/client" />} />
+        <Route path="new/:requestId" element={<NewActivityPage basePath="/client" />} />
         <Route path="activities/:id" element={<ActivityDetailPage backPath="/client" />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="settings/notifications" element={<NotificationPreferencesPage />} />
-        <Route path="vehicles" element={<VehiclesPage title="Mis vehículos" basePath="/client/vehicles" />} />
+        <Route path="vehicles" element={<VehiclesPage title="Mis vehículos" basePath="/client/vehicles" requests="own" />} />
         <Route
           path="vehicles/:id"
           element={<VehicleDetailPage backPath="/client/vehicles" activitiesPath="/client/activities" />}

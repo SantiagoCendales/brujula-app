@@ -41,6 +41,26 @@ function publish(change) {
   }
 }
 
+// Tells the screens that list plate requests (the requesting company and staff) to refetch. It reuses the
+// `activity.changed` stream with `activity_id: null`, so screens subscribed with useActivityChanges just reload.
+export function notifyVehicleRequestChanged({ requestId, companyId, change, actorId }) {
+  const event = {
+    type: 'activity.changed',
+    activity_id: null,
+    request_id: requestId,
+    status: null,
+    change,
+    actor_id: actorId,
+    technician_id: null,
+  };
+  for (const subscriber of subscribers) {
+    const { role, company_id: userCompanyId } = subscriber.user;
+    if (['coordinator', 'admin'].includes(role) || (role === 'client' && userCompanyId === companyId)) {
+      subscriber.send(event);
+    }
+  }
+}
+
 // Call after the change is committed, so whoever refetches sees the new data.
 // `change` names what happened (created, assigned, arrived, finished, validated, returned, resubmitted, delivered,
 // report_updated, photo_added, photo_deleted, comment_added, comment_updated). `previousTechnicianId` lets a technician who just lost the activity

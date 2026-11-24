@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useActivityChanges } from '@/lib/liveUpdates';
 import { useApi } from '@/lib/useApi';
+import VehicleRequests from '@/vehicles/VehicleRequests';
 
 const SEARCH_DELAY_MS = 300;
 const OPEN_GROUPS_KEY = 'brujula.vehicles.openCompanies';
@@ -87,8 +88,9 @@ function CompanyGroup({ company, vehicles, basePath, open, onToggle }) {
 
 // Vehicle list with plate search. The API returns only the vehicles each role may see.
 // With `grouped`, vehicles are listed under their client, whose plates show when the client is opened
-// (or all at once while searching by plate).
-export default function VehiclesPage({ title, basePath, grouped = false }) {
+// (or all at once while searching by plate). `requests` shows plate requests above the list:
+// 'review' for staff (approve or reject), 'own' for a client (follow them).
+export default function VehiclesPage({ title, basePath, grouped = false, requests = null }) {
   const [search, setSearch] = useState('');
   const [plate, setPlate] = useState('');
   const [openIds, toggleCompany] = useOpenCompanies();
@@ -117,6 +119,7 @@ export default function VehiclesPage({ title, basePath, grouped = false }) {
       </div>
 
       <ErrorMessage>{error?.message}</ErrorMessage>
+      {requests && <VehicleRequests staff={requests === 'review'} />}
       {loading && !data && <Skeleton className="h-20 rounded-xl" />}
       {data?.vehicles.length === 0 &&
         (plate ? (

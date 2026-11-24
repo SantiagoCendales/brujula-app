@@ -34,7 +34,7 @@ export function authHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-export async function request(path, { method = 'GET', body } = {}) {
+export async function request(path, { method = 'GET', body, responseType = 'json' } = {}) {
   const token = getToken();
   const isFormData = body instanceof FormData;
   const headers = {};
@@ -52,8 +52,8 @@ export async function request(path, { method = 'GET', body } = {}) {
     throw new ApiError(0, 'network_error', 'No se pudo conectar con el servidor', null);
   }
 
-  const data = await response.json().catch(() => null);
   if (!response.ok) {
+    const data = await response.json().catch(() => null);
     const error = data?.error;
     if (!error) {
       // No JSON error body: the request never reached our API (e.g. the Vite proxy could not connect to it).
@@ -62,5 +62,5 @@ export async function request(path, { method = 'GET', body } = {}) {
     if (response.status === 401 && token) handleUnauthorized();
     throw new ApiError(response.status, error.code, error.message, error.details);
   }
-  return data;
+  return responseType === 'blob' ? response.blob() : response.json().catch(() => null);
 }
