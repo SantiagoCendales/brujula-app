@@ -3,7 +3,9 @@ import { config } from '../config.js';
 
 export const pool = new pg.Pool({
   connectionString: config.databaseUrl,
-  ssl: config.databaseSsl ? { rejectUnauthorized: false } : undefined,
+  // The certificate is verified so nobody can impersonate the database. Managed providers (Neon, Supabase)
+  // use public CAs; a private CA can be supplied through DATABASE_SSL_CA.
+  ssl: config.databaseSsl ? { rejectUnauthorized: true, ca: config.databaseSslCa } : undefined,
 });
 
 export async function withTransaction(work) {

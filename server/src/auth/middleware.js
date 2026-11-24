@@ -26,6 +26,7 @@ export async function authenticate(req, _res, next) {
   if (!user?.active) throw unauthenticated();
 
   req.user = user;
+  req.tokenExpiresAt = payload.exp * 1000;
   next();
 }
 

@@ -20,6 +20,7 @@ export const config = {
   port: Number(process.env.PORT ?? 3001),
   databaseUrl: required('DATABASE_URL'),
   databaseSsl: process.env.DATABASE_SSL === 'true',
+  databaseSslCa: process.env.DATABASE_SSL_CA || undefined,
   jwtSecret: requiredSecret('JWT_SECRET'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '12h',
   uploadsDir: path.resolve(process.env.UPLOADS_DIR ?? 'uploads'),
