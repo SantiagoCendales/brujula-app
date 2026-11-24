@@ -42,6 +42,9 @@ async function deletePhotoFiles(db) {
 // Empties the database and loads the base data, plus the demo activities unless `demo` is false
 // (the tests use only the base data). Returns the ids by key.
 export async function seed({ password = process.env.SEED_PASSWORD ?? 'brujula123', demo = true } = {}) {
+  if (config.isProduction) {
+    throw new Error('Demo data and its shared password must never be loaded in production.');
+  }
   const passwordHash = await bcrypt.hash(password, 10);
 
   return withTransaction(async (db) => {
