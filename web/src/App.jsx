@@ -68,7 +68,7 @@ export default function App() {
         <Route path="settings/notifications" element={<NotificationPreferencesPage />} />
         <Route path="permissions" element={<PermissionsPage />} />
         <Route path="activities/:id" element={<ActivityDetailPage backPath="/coordinator" />} />
-        <Route path="vehicles" element={<VehiclesPage title="Vehículos" basePath="/coordinator/vehicles" />} />
+        <Route path="vehicles" element={<VehiclesPage title="Vehículos" basePath="/coordinator/vehicles" grouped />} />
         <Route
           path="vehicles/:id"
           element={<VehicleDetailPage backPath="/coordinator/vehicles" activitiesPath="/coordinator/activities" />}

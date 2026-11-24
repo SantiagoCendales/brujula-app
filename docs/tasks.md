@@ -11,6 +11,7 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 
 ## 📣 Novedades que afectan al front
 
+- **[vehículos]** En Admin y Coordinador, la lista de vehículos se agrupa por cliente en orden alfabético, con la cantidad. Las placas aparecen al tocar el cliente (todas a la vez mientras se busca por placa) y el cliente abierto se recuerda al volver desde un vehículo. Es la prop `grouped` de `pages/VehiclesPage.jsx`; los demás roles no cambian.
 - **[notificaciones]** Todos los roles tienen el engranaje de Configuración → «Notificaciones», donde se activan o desactivan los avisos emergentes y la vibración (`pages/NotificationPreferencesPage.jsx`). La campanita sigue guardando todo; los avisos del técnico (asignación y devolución) son obligatorios. Cada regla de `ActivityNotifier` tiene un `type`.
 - **[notificaciones]** Al pulsar «Terminé», el cliente recibe un aviso de que el técnico terminó el trabajo; el informe sigue oculto hasta su validación.
 - **[vehículos]** La lista muestra placas; el detalle incluye marca, modelo, VIN, año, color e historial. El técnico accede desde la placa de la actividad, según sus permisos actuales.
@@ -54,7 +55,6 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 
 Abordarlas de a una, actualizando su estado aquí antes de empezar.
 
-- [ ] **Vehículos agrupados:** en las vistas de Admin y Coordinador, organizar los vehículos por cliente y luego por placa.
 - [ ] **Solicitud de nueva placa:** impedir que el cliente cree vehículos directamente; permitirle solicitar una placa nueva y crear el vehículo en el sistema una vez validada la solicitud.
 - [ ] **Datos de la solicitud:** pedir lugar, fecha y hora al cliente al crear una solicitud de nueva placa.
 
@@ -64,6 +64,7 @@ Los componentes van en `web/src/components/`, se arman con los componentes de `c
 
 ## 🔄 En curso
 
+- **Vehículos agrupados:** Admin y Coordinador ven una lista de clientes; las placas se muestran al tocar cada uno. Pendiente de pruebas del usuario.
 - **Preferencias de notificaciones:** cada usuario elige qué avisos emergentes y vibraciones recibe desde Configuración; la campanita conserva el historial y los avisos críticos del técnico son obligatorios. Pendiente de pruebas del usuario.
 - **Características de vehículos:** consultar VIN, año y color en el detalle para todos los roles, sin edición de esos datos por ahora.
 - **Devoluciones internas:** el cliente conserva el último estado anterior a la devolución; el informe y las fotos se muestran solo después de la validación.
