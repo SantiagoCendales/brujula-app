@@ -41,6 +41,26 @@ export function eventLabel(event) {
   return EVENT_TYPE_LABELS[event.type] ?? STATUS_LABELS[event.to_status] ?? event.type;
 }
 
+// Notification types a user can mute (they match the event `change`). The wording depends on the role that receives them.
+const NOTIFICATION_TYPE_LABELS = {
+  assigned: 'Nueva actividad asignada',
+  returned: 'Te devolvieron un informe',
+  created: 'Nueva solicitud de servicio',
+  arrived: 'Un técnico llegó al sitio',
+  finished: 'Un técnico envió un informe',
+  resubmitted: 'Un técnico reenvió un informe corregido',
+  validated: 'Informe validado: listo para entregar',
+};
+const CLIENT_NOTIFICATION_TYPE_LABELS = {
+  arrived: 'El técnico llegó a tu vehículo',
+  finished: 'El técnico terminó el trabajo',
+  delivered: 'Tu informe está listo',
+};
+
+export function notificationTypeLabel(type, role) {
+  return (role === 'client' && CLIENT_NOTIFICATION_TYPE_LABELS[type]) || NOTIFICATION_TYPE_LABELS[type] || type;
+}
+
 export const PHOTO_CATEGORY_LABELS = {
   plate: 'Frente con placa',
   odometer: 'Kilometraje',

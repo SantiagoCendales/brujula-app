@@ -7,6 +7,28 @@ const ROLE_CHANGES = {
   delivered: ['client'],
 };
 
+// Types each role can mute (they match the event `change`). The technician's assignment and return notices
+// are not configurable: missing one leaves work unattended.
+const MUTABLE_TYPES = {
+  admin: ['created', 'arrived', 'finished', 'resubmitted', 'validated'],
+  coordinator: ['created', 'arrived', 'finished', 'resubmitted', 'validated'],
+  cec: ['finished', 'resubmitted'],
+  client: ['arrived', 'finished', 'delivered'],
+  technician: [],
+};
+const MANDATORY_TYPES = { technician: ['assigned', 'returned'] };
+
+export const mutableTypesFor = (role) => MUTABLE_TYPES[role] ?? [];
+
+export async function listPreferences(db, user) {
+  const { rows } = await db.query('select type from muted_notification_types where user_id = $1', [user.id]);
+  const muted = new Set(rows.map((row) => row.type));
+  return [
+    ...(MANDATORY_TYPES[user.role] ?? []).map((type) => ({ type, enabled: true, mandatory: true })),
+    ...mutableTypesFor(user.role).map((type) => ({ type, enabled: !muted.has(type), mandatory: false })),
+  ];
+}
+
 export async function createNotifications(db, { eventId, activityId, userId, type }) {
   const roles = ROLE_CHANGES[type] ?? [];
   const technician = ['assigned', 'returned'].includes(type);

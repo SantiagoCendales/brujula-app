@@ -3,11 +3,34 @@ import { z } from 'zod';
 import { authenticate } from '../auth/middleware.js';
 import { pool } from '../db/pool.js';
 import { activityScope } from '../domain/access.js';
+import { listPreferences, mutableTypesFor } from '../domain/notifications.js';
 import { HttpError } from '../lib/errors.js';
 import { idSchema, validate } from '../lib/validation.js';
 
 export const notificationsRouter = Router();
 notificationsRouter.use(authenticate);
+
+notificationsRouter.get('/preferences', async (req, res) => {
+  res.json({ preferences: await listPreferences(pool, req.user) });
+});
+
+const preferenceSchema = z.object({ type: z.string(), enabled: z.boolean() }).strict();
+
+notificationsRouter.patch('/preferences', async (req, res) => {
+  const { type, enabled } = validate(preferenceSchema, req.body);
+  if (!mutableTypesFor(req.user.role).includes(type)) {
+    throw new HttpError(404, 'not_found', 'Tipo de notificación no configurable');
+  }
+  if (enabled) {
+    await pool.query('delete from muted_notification_types where user_id = $1 and type = $2', [req.user.id, type]);
+  } else {
+    await pool.query(
+      'insert into muted_notification_types (user_id, type) values ($1, $2) on conflict do nothing',
+      [req.user.id, type],
+    );
+  }
+  res.json({ ok: true });
+});
 
 notificationsRouter.get('/', async (req, res) => {
   const { before } = validate(z.object({ before: idSchema.optional() }), req.query);

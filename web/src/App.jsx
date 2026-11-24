@@ -9,6 +9,7 @@ import ActivityDetailPage from './pages/ActivityDetailPage.jsx';
 import Home from './pages/Home.jsx';
 import Login from './pages/Login.jsx';
 import NewActivityPage from './pages/NewActivityPage.jsx';
+import NotificationPreferencesPage from './pages/NotificationPreferencesPage.jsx';
 import PermissionsPage from './pages/PermissionsPage.jsx';
 import SettingsPage from './pages/SettingsPage.jsx';
 import VehicleDetailPage from './pages/VehicleDetailPage.jsx';
@@ -64,6 +65,7 @@ export default function App() {
         />
         <Route path="new" element={<NewActivityPage basePath="/coordinator" />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="settings/notifications" element={<NotificationPreferencesPage />} />
         <Route path="permissions" element={<PermissionsPage />} />
         <Route path="activities/:id" element={<ActivityDetailPage backPath="/coordinator" />} />
         <Route path="vehicles" element={<VehiclesPage title="Vehículos" basePath="/coordinator/vehicles" />} />
@@ -99,6 +101,8 @@ export default function App() {
           }
         />
         <Route path="activities/:id" element={<ActivityDetailPage backPath="/technician" />} />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="settings/notifications" element={<NotificationPreferencesPage />} />
         <Route path="vehicles" element={<VehiclesPage title="Vehículos" basePath="/technician/vehicles" />} />
         <Route
           path="vehicles/:id"
@@ -109,6 +113,8 @@ export default function App() {
       <Route path="/cec" element={roleSection(['cec', 'admin'])}>
         <Route index element={<ActivitiesPage title="Actividades" basePath="/cec/activities" initialStatus="report_ready" />} />
         <Route path="activities/:id" element={<ActivityDetailPage backPath="/cec" />} />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="settings/notifications" element={<NotificationPreferencesPage />} />
         <Route path="vehicles" element={<VehiclesPage title="Vehículos" basePath="/cec/vehicles" />} />
         <Route
           path="vehicles/:id"
@@ -131,6 +137,8 @@ export default function App() {
         />
         <Route path="new" element={<NewActivityPage basePath="/client" />} />
         <Route path="activities/:id" element={<ActivityDetailPage backPath="/client" />} />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="settings/notifications" element={<NotificationPreferencesPage />} />
         <Route path="vehicles" element={<VehiclesPage title="Mis vehículos" basePath="/client/vehicles" />} />
         <Route
           path="vehicles/:id"

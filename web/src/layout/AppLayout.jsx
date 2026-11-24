@@ -38,7 +38,7 @@ function NavTabs({ role }) {
   const { pathname } = useLocation();
   const tabs = TABS[role] ?? [];
   // The longest matching prefix wins, so /coordinator/vehicles/3 lights "Vehículos" and /coordinator/activities/3 "Actividades".
-  const isSettings = pathname === '/coordinator/settings' || pathname === '/coordinator/permissions';
+  const isSettings = pathname.includes('/settings') || pathname === '/coordinator/permissions';
   const active = isSettings ? undefined : tabs
     .filter((tab) => pathname.startsWith(tab.to))
     .sort((first, second) => second.to.length - first.to.length)[0];
@@ -133,11 +133,9 @@ export default function AppLayout() {
           </Link>
           <div className="flex items-center">
             <NotificationsButton />
-            {['admin', 'coordinator'].includes(user.role) && (
-              <Button asChild variant="ghost" size="icon-lg" className="size-12 text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground">
-                <Link to="/coordinator/settings" aria-label="Configuración"><Settings /></Link>
-              </Button>
-            )}
+            <Button asChild variant="ghost" size="icon-lg" className="size-12 text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground">
+              <Link to={`${homePathFor(user.role)}/settings`} aria-label="Configuración"><Settings /></Link>
+            </Button>
             <Button
               variant="ghost"
               size="lg"

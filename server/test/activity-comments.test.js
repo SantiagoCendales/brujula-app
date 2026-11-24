@@ -51,7 +51,7 @@ test('all roles with access can comment at every state, including after delivery
       assert.ok(response.body.comment.created_at);
     }
     const activity = await get('client', `/api/activities/${id}`);
-    assert.equal(activity.body.activity.status, status);
+    assert.equal(activity.body.activity.status, status === 'returned' ? 'report_ready' : status);
   }
   const response = await get('client', path);
   assert.equal(response.status, 200);

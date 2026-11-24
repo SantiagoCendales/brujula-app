@@ -174,6 +174,10 @@ Al finalizar el trabajo, los clientes de la empresa reciben un aviso `finished`;
 | GET | `/notifications?before=123` | `{ notifications, has_more }`: hasta 50 avisos, del más reciente al más antiguo; `before` es el id del último aviso de la página anterior |
 | GET | `/notifications/unread-count` | `{ count }`: cantidad de avisos no leídos visibles |
 | POST | `/notifications/:id/read` | `{ ok: true }`: marca como leído un aviso propio y visible; uno ajeno o inaccesible responde 404 |
+| GET | `/notifications/preferences` | `{ preferences: [{ type, enabled, mandatory }] }`: los avisos emergentes del rol del usuario; los `mandatory` no se pueden desactivar |
+| PATCH | `/notifications/preferences` | `{ type, enabled }` → `{ ok: true }`; un `type` que no existe o es obligatorio para el rol responde 404 |
+
+Las preferencias son por usuario y solo silencian el aviso emergente y la vibración; la campanita siempre guarda el historial. Tipos que cada rol puede silenciar (coinciden con el `change` del evento): Admin y Coordinador `created`, `arrived`, `finished`, `resubmitted`, `validated`; CEC `finished`, `resubmitted`; Cliente `arrived`, `finished`, `delivered`. Del técnico, `assigned` y `returned` son obligatorios. Por defecto todos están activados.
 
 Cada aviso incluye `id`, `read_at`, `type`, `created_at`, `activity_id`, `actor_name`, `plate` y `activity_type`.
 

@@ -101,3 +101,34 @@ test('notification pagination returns all pages without duplicates', async () =>
   assert.ok(second.body.notifications.length > 0);
   assert.ok(second.body.notifications.every((item) => item.id < lastId));
 });
+
+test('preferences are per user, limited to what each role can mute and never affect mandatory notices', async () => {
+  const patch = (token, body) => request(app).patch('/api/notifications/preferences').set(bearer(token)).send(body);
+
+  const initial = await get('/api/notifications/preferences', tokens.clientCondor);
+  assert.deepEqual(initial.body.preferences, [
+    { type: 'arrived', enabled: true, mandatory: false },
+    { type: 'finished', enabled: true, mandatory: false },
+    { type: 'delivered', enabled: true, mandatory: false },
+  ]);
+
+  assert.equal((await patch(tokens.clientCondor, { type: 'arrived', enabled: false })).status, 200);
+  assert.equal((await patch(tokens.clientCondor, { type: 'arrived', enabled: false })).status, 200);
+  const muted = await get('/api/notifications/preferences', tokens.clientCondor);
+  assert.equal(muted.body.preferences.find((item) => item.type === 'arrived').enabled, false);
+  const other = await get('/api/notifications/preferences', tokens.clientCeiba);
+  assert.ok(other.body.preferences.every((item) => item.enabled));
+
+  assert.equal((await patch(tokens.clientCondor, { type: 'validated', enabled: false })).status, 404);
+  assert.equal((await patch(tokens.technician1, { type: 'assigned', enabled: false })).status, 404);
+  assert.equal((await patch(tokens.clientCondor, { type: 'arrived', enabled: 'no' })).status, 400);
+  const technician = await get('/api/notifications/preferences', tokens.technician1);
+  assert.deepEqual(technician.body.preferences, [
+    { type: 'assigned', enabled: true, mandatory: true },
+    { type: 'returned', enabled: true, mandatory: true },
+  ]);
+
+  assert.equal((await patch(tokens.clientCondor, { type: 'arrived', enabled: true })).status, 200);
+  const restored = await get('/api/notifications/preferences', tokens.clientCondor);
+  assert.ok(restored.body.preferences.every((item) => item.enabled));
+});

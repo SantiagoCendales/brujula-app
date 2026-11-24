@@ -20,76 +20,88 @@ const technicianName = (activity, fallback) => activity?.performed_by?.name ?? f
 const returnedBy = (activity) => activity?.events.findLast((event) => event.type === 'returned')?.user.name;
 
 // What each role gets notified about. The first matching rule wins; nobody is notified of their own actions.
-// `title` is a string or a function of the activity.
+// `title` is a string or a function of the activity. `type` is what the user can mute in Configuración.
 const RULES = [
   {
     roles: ['technician'],
+    type: 'assigned',
     matches: (event, me) => ['created', 'assigned'].includes(event.change) && event.technician_id === me.id,
     title: 'Nueva actividad asignada',
     Icon: BellRing,
   },
   {
     roles: ['technician'],
+    type: 'returned',
     matches: (event, me) => event.change === 'returned' && event.technician_id === me.id,
     title: (activity) => (returnedBy(activity) ? `${returnedBy(activity)} devolvió tu informe` : 'Te devolvieron un informe'),
     Icon: Undo2,
   },
   {
     roles: ['coordinator', 'admin'],
+    type: 'arrived',
     matches: (event) => event.change === 'arrived',
     title: (activity) => `${technicianName(activity, 'Un técnico')} llegó al sitio`,
     Icon: MapPin,
   },
   {
     roles: ['coordinator', 'admin'],
+    type: 'created',
     matches: (event) => event.change === 'created' && event.status === 'requested',
     title: 'Nueva solicitud de servicio',
     Icon: Inbox,
   },
   {
     roles: ['coordinator'],
+    type: 'finished',
     matches: (event) => event.change === 'finished',
     title: (activity) => `${technicianName(activity, 'Un técnico')} envió el informe`,
     Icon: FileCheck,
   },
   {
     roles: ['coordinator'],
+    type: 'resubmitted',
     matches: (event) => event.change === 'resubmitted',
     title: (activity) => `${technicianName(activity, 'Un técnico')} reenvió el informe corregido`,
     Icon: FileCheck,
   },
   {
     roles: ['coordinator', 'admin'],
+    type: 'validated',
     matches: (event) => event.change === 'validated',
     title: 'Informe validado: listo para entregar',
     Icon: PackageCheck,
   },
   {
     roles: ['cec', 'admin'],
+    type: 'finished',
     matches: (event) => event.change === 'finished',
     title: (activity) => `${technicianName(activity, 'Un técnico')} envió un informe para validar`,
     Icon: FileCheck,
   },
   {
     roles: ['cec', 'admin'],
+    type: 'resubmitted',
     matches: (event) => event.change === 'resubmitted',
     title: (activity) => `${technicianName(activity, 'Un técnico')} corrigió un informe`,
     Icon: FileCheck,
   },
   {
     roles: ['client'],
+    type: 'arrived',
     matches: (event) => event.change === 'arrived',
     title: (activity) => `${technicianName(activity, 'El técnico')} llegó a tu vehículo`,
     Icon: MapPin,
   },
   {
     roles: ['client'],
+    type: 'finished',
     matches: (event) => event.change === 'finished',
     title: (activity) => `${technicianName(activity, 'El técnico')} terminó el trabajo`,
     Icon: CircleCheckBig,
   },
   {
     roles: ['client'],
+    type: 'delivered',
     matches: (event) => event.change === 'delivered',
     title: 'Tu informe está listo',
     Icon: PackageCheck,
@@ -142,8 +154,14 @@ export default function ActivityNotifier() {
       const rule = RULES.find((candidate) => candidate.roles.includes(user.role) && candidate.matches(event, user));
       if (!rule) return;
 
+      const [{ activity }, { preferences }] = await Promise.all([
+        request(`/activities/${event.activity_id}`).catch(() => ({ activity: null })),
+        request('/notifications/preferences').catch(() => ({ preferences: [] })),
+      ]);
+      // Muting only silences the pop-up and vibration; the bell keeps the history.
+      if (preferences.some((preference) => preference.type === rule.type && !preference.enabled)) return;
+
       navigator.vibrate?.(VIBRATION_MS);
-      const { activity } = await request(`/activities/${event.activity_id}`).catch(() => ({ activity: null }));
       const detailPath = `${homePathFor(user.role)}/activities/${event.activity_id}`;
       toast.custom(
         (toastId) => (

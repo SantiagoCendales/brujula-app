@@ -11,6 +11,7 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 
 ## 📣 Novedades que afectan al front
 
+- **[notificaciones]** Todos los roles tienen el engranaje de Configuración → «Notificaciones», donde se activan o desactivan los avisos emergentes y la vibración (`pages/NotificationPreferencesPage.jsx`). La campanita sigue guardando todo; los avisos del técnico (asignación y devolución) son obligatorios. Cada regla de `ActivityNotifier` tiene un `type`.
 - **[notificaciones]** Al pulsar «Terminé», el cliente recibe un aviso de que el técnico terminó el trabajo; el informe sigue oculto hasta su validación.
 - **[vehículos]** La lista muestra placas; el detalle incluye marca, modelo, VIN, año, color e historial. El técnico accede desde la placa de la actividad, según sus permisos actuales.
 - **[notificaciones]** El panel permite desplazarse sin recortar los botones. Cada aviso sin leer se puede marcar como leído sin abrir la actividad; el contador de la campanita se actualiza al hacerlo.
@@ -18,7 +19,7 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 - **[cursor]** Los controles interactivos habilitados muestran el cursor de mano en escritorio; los campos editables mantienen el cursor de texto.
 - **[pestañas]** La navegación y las pestañas del detalle usan botones ovalados con sombra debajo; la opción activa se resalta con el color principal y una sombra más marcada.
 - **[novedades]** El detalle incluye una pestaña de comentarios públicos o internos. El personal elige y ve la visibilidad; el cliente no ve esa etiqueta. Los internos usan el color principal del tema. Las rutas y datos están en `docs/api.md`.
-- **[configuración]** El engranaje abre Configuración; «Permisos por rol» es la primera opción disponible para Admin y Coordinador.
+- **[configuración]** El engranaje abre Configuración; Admin y Coordinador además tienen «Permisos por rol».
 - **[desarrollo]** Vite también acepta túneles de ngrok con dominios `ngrok-free.dev`, además de `ngrok-free.app`.
 - **[componentes]** Nuevos componentes reutilizables en `web/src/components/`: `ScheduleField` (fecha con calendario y hora con dos selectores), `VehicleCombobox` (buscador de vehículo por placa), `ActivityTypePicker` (tipo de servicio con íconos), `TechnicianDrawer` (panel desde abajo para elegir técnico) y `ConfirmAction` (botón que pide confirmación). Ejemplos en `pages/NewActivityPage.jsx` y `execution/`.
 - **[componentes]** Nuevos de shadcn en `components/ui/`: `Calendar`, `Popover`, `Command`, `ToggleGroup`, `AlertDialog`, `Drawer` (panel que sube desde abajo, como "Asignar técnico") y `Tabs` (el detalle ahora tiene Resumen / Fotos / Historial). Tu `PhotoGrid` (T12) va en la pestaña **Fotos** de `pages/ActivityDetailPage.jsx`.
@@ -53,9 +54,6 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 
 Abordarlas de a una, actualizando su estado aquí antes de empezar.
 
-- [ ] **Llegada y salida del técnico:** mostrar a Cliente, Admin y Coordinador cuándo el técnico llegó y salió de la actividad.
-- [ ] **Preferencias de notificaciones:** agregar Configuración para que cada usuario elija qué notificaciones recibe.
-- [ ] **Visibilidad del informe:** evitar que el cliente vea que el informe está completo antes de que todo haya sido validado.
 - [ ] **Vehículos agrupados:** en las vistas de Admin y Coordinador, organizar los vehículos por cliente y luego por placa.
 - [ ] **Solicitud de nueva placa:** impedir que el cliente cree vehículos directamente; permitirle solicitar una placa nueva y crear el vehículo en el sistema una vez validada la solicitud.
 - [ ] **Datos de la solicitud:** pedir lugar, fecha y hora al cliente al crear una solicitud de nueva placa.
@@ -66,11 +64,14 @@ Los componentes van en `web/src/components/`, se arman con los componentes de `c
 
 ## 🔄 En curso
 
+- **Preferencias de notificaciones:** cada usuario elige qué avisos emergentes y vibraciones recibe desde Configuración; la campanita conserva el historial y los avisos críticos del técnico son obligatorios. Pendiente de pruebas del usuario.
 - **Características de vehículos:** consultar VIN, año y color en el detalle para todos los roles, sin edición de esos datos por ahora.
 - **Devoluciones internas:** el cliente conserva el último estado anterior a la devolución; el informe y las fotos se muestran solo después de la validación.
 
 ## ✅ Hechas
 
+- **Llegada y salida del técnico:** el detalle muestra «Llegada» y «Fin» (se registra al pulsar «Terminé»), y el cliente recibe un aviso cuando el técnico termina el trabajo.
+- **Visibilidad del informe:** el cliente no ve el contenido del informe ni las fotos hasta la validación. Se decidió mantener el estado «Informe listo» visible para él desde que el técnico termina.
 - **Novedades de la actividad:** comentarios públicos o internos en cualquier estado; cada autor puede editar los suyos y su visibilidad si es personal, sin borrarlos, con fechas de creación y edición.
 - **Permisos por rol:** Admin y Coordinador pueden activar o desactivar las acciones autorizadas para los roles que administran, sin modificar los límites de acceso a los datos. Probado en celular y web.
 - **Historial de notificaciones:** los avisos se conservan por usuario desde su activación y se consultan desde la campanita del encabezado, con indicador de no leídas.
