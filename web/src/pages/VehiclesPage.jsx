@@ -1,22 +1,22 @@
 import { Car, ChevronRight, Search, SearchX } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { useAuth } from '@/auth/AuthContext';
 import EmptyState from '@/components/EmptyState';
 import ErrorMessage from '@/components/ErrorMessage';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useActivityChanges } from '@/lib/liveUpdates';
 import { useApi } from '@/lib/useApi';
 
 const SEARCH_DELAY_MS = 300;
 
 // Vehicle list with plate search. The API returns only the vehicles each role may see.
 export default function VehiclesPage({ title, basePath }) {
-  const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [plate, setPlate] = useState('');
-  const { data, error, loading } = useApi(`/vehicles${plate ? `?plate=${encodeURIComponent(plate)}` : ''}`);
+  const { data, error, loading, reload } = useApi(`/vehicles${plate ? `?plate=${encodeURIComponent(plate)}` : ''}`);
+  useActivityChanges(reload);
 
   useEffect(() => {
     const timer = setTimeout(() => setPlate(search.trim()), SEARCH_DELAY_MS);
@@ -54,13 +54,7 @@ export default function VehiclesPage({ title, basePath }) {
             <Link to={`${basePath}/${vehicle.id}`} className="block transition-transform active:scale-[0.99]">
               <Card size="sm">
                 <CardContent className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="font-mono text-lg font-semibold tracking-wide">{vehicle.plate}</p>
-                    <p className="text-muted-foreground">
-                      {vehicle.make} {vehicle.model}
-                      {user.role !== 'client' && ` · ${vehicle.company.name}`}
-                    </p>
-                  </div>
+                  <p className="min-w-0 font-mono text-lg font-semibold tracking-wide">{vehicle.plate}</p>
                   <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
                 </CardContent>
               </Card>

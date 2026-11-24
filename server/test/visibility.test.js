@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, describe, test } from 'node:test';
-import { bearer, loginAs, request, setup, teardown } from './helpers.js';
+import { bearer, loginAs, pool, request, setup, teardown } from './helpers.js';
 
 let app;
 let ids;
@@ -10,6 +10,8 @@ before(async () => {
   ({ app, ids } = await setup());
   const emails = {
     coordinator: 'coordinador@brujula.test',
+    admin: 'admin@brujula.test',
+    cec: 'cec@brujula.test',
     technician1: 'tecnico1@brujula.test',
     technician3: 'tecnico3@brujula.test',
     clientCondor: 'cliente.condor@brujula.test',
@@ -138,4 +140,50 @@ describe('POST /api/vehicles', () => {
       .send({ company_id: ids.companies.condor, plate: 'DEMO-999' });
     assert.equal(response.status, 403);
   });
+});
+
+test('all authorized roles can see the new fields without exposing another company', async () => {
+  const id = ids.vehicles.condor2;
+  const empty = await get(`/api/vehicles/${id}`, tokens.clientCondor);
+  assert.deepEqual(
+    [empty.body.vehicle.vin, empty.body.vehicle.year, empty.body.vehicle.color],
+    [null, null, null],
+  );
+  await pool.query('update vehicles set vin = $2, year = $3, color = $4 where id = $1', [id, 'TESTVIN0000000001', 2024, 'Azul']);
+  for (const role of ['admin', 'coordinator', 'cec', 'technician1', 'clientCondor']) {
+    const detail = await get(`/api/vehicles/${id}`, tokens[role]);
+    assert.equal(detail.status, 200);
+    assert.deepEqual(
+      [detail.body.vehicle.vin, detail.body.vehicle.year, detail.body.vehicle.color],
+      ['TESTVIN0000000001', 2024, 'Azul'],
+    );
+    const list = await get('/api/vehicles', tokens[role]);
+    const vehicle = list.body.vehicles.find((item) => item.id === id);
+    assert.deepEqual([vehicle.vin, vehicle.year, vehicle.color], ['TESTVIN0000000001', 2024, 'Azul']);
+  }
+  assert.equal((await get(`/api/vehicles/${id}`, tokens.clientCeiba)).status, 404);
+});
+
+test('a technician sees the full history only while assigned to the vehicle', async () => {
+  const { rows: vehicles } = await pool.query(
+    "insert into vehicles (company_id, plate) values ($1, 'DEMO-HISTORY') returning id",
+    [ids.companies.condor],
+  );
+  const vehicleId = vehicles[0].id;
+  const { rows: activities } = await pool.query(
+    `insert into activities (company_id, vehicle_id, type, status, created_by, technician_id, performed_by)
+     values ($1, $2, 'inspection', 'assigned', $3, $4, null),
+            ($1, $2, 'inspection', 'delivered', $3, null, $5),
+            ($1, $2, 'inspection', 'delivered', $3, null, $4)
+     returning id`,
+    [ids.companies.condor, vehicleId, ids.users.coordinator, ids.users.technician1, ids.users.technician2],
+  );
+  const assigned = await get(`/api/vehicles/${vehicleId}`, tokens.technician1);
+  assert.equal(assigned.status, 200);
+  assert.deepEqual(new Set(assigned.body.history.map((item) => item.id)), new Set(activities.map((item) => item.id)));
+
+  await pool.query('update activities set technician_id = null where id = $1', [activities[0].id]);
+  const previousWork = await get(`/api/vehicles/${vehicleId}`, tokens.technician1);
+  assert.equal(previousWork.status, 200);
+  assert.deepEqual(previousWork.body.history.map((item) => item.id), [activities[2].id]);
 });

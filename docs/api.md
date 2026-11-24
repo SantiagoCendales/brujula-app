@@ -156,11 +156,12 @@ Admin puede configurar todos los roles; Coordinador solo Cliente, Técnico y CEC
 ```json
 "vehicle": {
   "id": 1, "plate": "DEMO-101", "make": "Toyota", "model": "Hilux", "description": "",
+  "vin": null, "year": null, "color": null,
   "company": { "id": 1, "name": "Transportes Cóndor" }
 }
 ```
 
-La placa se guarda en mayúsculas y es única.
+La placa se guarda en mayúsculas y es única. `vin`, `year` y `color` son opcionales y llegan en `null` si no están registrados; por ahora las rutas no permiten modificarlos. El técnico ve vehículos asociados a actividades asignadas o ejecutadas por él; el historial completo está disponible para los vehículos que tiene asignados actualmente y, para los demás, solo ve sus propias intervenciones.
 
 ### Notificaciones ✅
 

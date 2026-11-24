@@ -1,5 +1,6 @@
 import { ChevronLeft, ClipboardList } from 'lucide-react';
 import { Link, useParams } from 'react-router';
+import { useAuth } from '@/auth/AuthContext';
 import ActivityCard from '@/components/ActivityCard';
 import EmptyState from '@/components/EmptyState';
 import ErrorMessage from '@/components/ErrorMessage';
@@ -12,6 +13,7 @@ import { useApi } from '@/lib/useApi';
 // A vehicle and its history of interventions, newest first.
 export default function VehicleDetailPage({ backPath, activitiesPath }) {
   const { id } = useParams();
+  const { user } = useAuth();
   const { data, error, loading, reload } = useApi(`/vehicles/${id}`);
   useActivityChanges(reload);
 
@@ -32,16 +34,26 @@ export default function VehicleDetailPage({ backPath, activitiesPath }) {
       <Card>
         <CardHeader>
           <CardTitle className="font-mono text-2xl tracking-wide">{vehicle.plate}</CardTitle>
-          <p className="text-muted-foreground">
-            {vehicle.make} {vehicle.model} · {vehicle.company.name}
-          </p>
-          {vehicle.description && <p>{vehicle.description}</p>}
         </CardHeader>
+        <CardContent className="flex flex-col gap-2">
+          <p><span className="text-muted-foreground">Empresa:</span> {vehicle.company.name}</p>
+          <p><span className="text-muted-foreground">Marca:</span> {vehicle.make || '—'}</p>
+          <p><span className="text-muted-foreground">Modelo:</span> {vehicle.model || '—'}</p>
+          <p className="break-all"><span className="text-muted-foreground">VIN:</span> {vehicle.vin || '—'}</p>
+          <p><span className="text-muted-foreground">Año:</span> {vehicle.year ?? '—'}</p>
+          <p><span className="text-muted-foreground">Color:</span> {vehicle.color || '—'}</p>
+          {vehicle.description && <p><span className="text-muted-foreground">Descripción:</span> {vehicle.description}</p>}
+        </CardContent>
       </Card>
 
       <h2 className="font-semibold">
         Historial de intervenciones <span className="text-muted-foreground">({history.length})</span>
       </h2>
+      {user.role === 'technician' && (
+        <p className="text-sm text-muted-foreground">
+          Si tienes el vehículo asignado, ves todo su historial; de lo contrario, solo tus intervenciones.
+        </p>
+      )}
       {history.length === 0 && (
         <EmptyState
           icon={ClipboardList}

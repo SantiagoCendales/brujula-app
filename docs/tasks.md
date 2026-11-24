@@ -11,6 +11,7 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 
 ## 📣 Novedades que afectan al front
 
+- **[vehículos]** La lista muestra placas; el detalle incluye marca, modelo, VIN, año, color e historial. El técnico también tiene acceso según sus permisos actuales.
 - **[notificaciones]** El panel permite desplazarse sin recortar los botones. Cada aviso sin leer se puede marcar como leído sin abrir la actividad; el contador de la campanita se actualiza al hacerlo.
 - **[devoluciones]** El cliente no ve el filtro «Devuelta»; la API presenta esas actividades como «Informe listo» y oculta el informe y las fotos hasta la validación.
 - **[cursor]** Los controles interactivos habilitados muestran el cursor de mano en escritorio; los campos editables mantienen el cursor de texto.
@@ -51,7 +52,6 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 
 Abordarlas de a una, actualizando su estado aquí antes de empezar.
 
-- [ ] **Características de vehículos:** mostrar los datos del vehículo, incluida la placa, en la pestaña Vehículos para todos los roles.
 - [ ] **Llegada y salida del técnico:** mostrar a Cliente, Admin y Coordinador cuándo el técnico llegó y salió de la actividad.
 - [ ] **Preferencias de notificaciones:** agregar Configuración para que cada usuario elija qué notificaciones recibe.
 - [ ] **Visibilidad del informe:** evitar que el cliente vea que el informe está completo antes de que todo haya sido validado.
@@ -65,6 +65,7 @@ Los componentes van en `web/src/components/`, se arman con los componentes de `c
 
 ## 🔄 En curso
 
+- **Características de vehículos:** consultar VIN, año y color en el detalle para todos los roles, sin edición de esos datos por ahora.
 - **Devoluciones internas:** el cliente conserva el último estado anterior a la devolución; el informe y las fotos se muestran solo después de la validación.
 
 ## ✅ Hechas

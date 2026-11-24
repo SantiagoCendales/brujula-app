@@ -18,6 +18,9 @@ function toVehicle(row) {
     plate: row.plate,
     make: row.make,
     model: row.model,
+    vin: row.vin,
+    year: row.year,
+    color: row.color,
     description: row.description,
     company: { id: row.company_id, name: row.company_name },
   };

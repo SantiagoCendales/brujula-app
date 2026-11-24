@@ -99,6 +99,11 @@ export default function App() {
           }
         />
         <Route path="activities/:id" element={<ActivityDetailPage backPath="/technician" />} />
+        <Route path="vehicles" element={<VehiclesPage title="Vehículos" basePath="/technician/vehicles" />} />
+        <Route
+          path="vehicles/:id"
+          element={<VehicleDetailPage backPath="/technician/vehicles" activitiesPath="/technician/activities" />}
+        />
       </Route>
 
       <Route path="/cec" element={roleSection(['cec', 'admin'])}>
