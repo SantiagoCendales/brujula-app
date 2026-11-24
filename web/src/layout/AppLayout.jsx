@@ -22,7 +22,6 @@ const TABS = {
   technician: [
     { to: '/technician', label: 'Pendientes' },
     { to: '/technician/history', label: 'Mi historial' },
-    { to: '/technician/vehicles', label: 'Vehículos' },
   ],
   cec: [
     { to: '/cec', label: 'Actividades' },

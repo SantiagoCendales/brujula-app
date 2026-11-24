@@ -131,7 +131,16 @@ export default function ActivityDetailPage({ backPath }) {
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
             <CardTitle className="text-lg">
-              {activity.vehicle.plate} · {ACTIVITY_TYPE_LABELS[activity.type]}
+              {user.role === 'technician' ? (
+                <Link
+                  to={`/technician/vehicles/${activity.vehicle.id}`}
+                  state={{ fromActivityId: activity.id }}
+                  className="text-primary underline underline-offset-2"
+                  aria-label={`Ver datos e historial del vehículo ${activity.vehicle.plate}`}
+                >
+                  {activity.vehicle.plate}
+                </Link>
+              ) : activity.vehicle.plate} · {ACTIVITY_TYPE_LABELS[activity.type]}
             </CardTitle>
             <StatusBadge status={activity.status} />
           </div>

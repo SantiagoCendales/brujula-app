@@ -1,5 +1,5 @@
 import { ChevronLeft, ClipboardList } from 'lucide-react';
-import { Link, useParams } from 'react-router';
+import { Link, useLocation, useParams } from 'react-router';
 import { useAuth } from '@/auth/AuthContext';
 import ActivityCard from '@/components/ActivityCard';
 import EmptyState from '@/components/EmptyState';
@@ -14,6 +14,7 @@ import { useApi } from '@/lib/useApi';
 export default function VehicleDetailPage({ backPath, activitiesPath }) {
   const { id } = useParams();
   const { user } = useAuth();
+  const { state } = useLocation();
   const { data, error, loading, reload } = useApi(`/vehicles/${id}`);
   useActivityChanges(reload);
 
@@ -21,13 +22,16 @@ export default function VehicleDetailPage({ backPath, activitiesPath }) {
   if (error) return <ErrorMessage>{error.message}</ErrorMessage>;
 
   const { vehicle, history } = data;
+  const fromActivityId = user.role === 'technician' && Number.isSafeInteger(state?.fromActivityId) && state.fromActivityId > 0
+    ? state.fromActivityId
+    : null;
 
   return (
     <section className="flex flex-col gap-4">
       <Button asChild variant="link" className="self-start px-0">
-        <Link to={backPath}>
+        <Link to={fromActivityId ? `${activitiesPath}/${fromActivityId}` : backPath}>
           <ChevronLeft />
-          Vehículos
+          {fromActivityId ? 'Volver a la actividad' : 'Vehículos'}
         </Link>
       </Button>
 

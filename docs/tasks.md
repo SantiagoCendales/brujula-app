@@ -12,7 +12,7 @@ Lugar único de las tareas del proyecto, que Sebas llevará adelante individualm
 ## 📣 Novedades que afectan al front
 
 - **[notificaciones]** Al pulsar «Terminé», el cliente recibe un aviso de que el técnico terminó el trabajo; el informe sigue oculto hasta su validación.
-- **[vehículos]** La lista muestra placas; el detalle incluye marca, modelo, VIN, año, color e historial. El técnico también tiene acceso según sus permisos actuales.
+- **[vehículos]** La lista muestra placas; el detalle incluye marca, modelo, VIN, año, color e historial. El técnico accede desde la placa de la actividad, según sus permisos actuales.
 - **[notificaciones]** El panel permite desplazarse sin recortar los botones. Cada aviso sin leer se puede marcar como leído sin abrir la actividad; el contador de la campanita se actualiza al hacerlo.
 - **[devoluciones]** El cliente no ve el filtro «Devuelta»; la API presenta esas actividades como «Informe listo» y oculta el informe y las fotos hasta la validación.
 - **[cursor]** Los controles interactivos habilitados muestran el cursor de mano en escritorio; los campos editables mantienen el cursor de texto.
