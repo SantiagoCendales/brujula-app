@@ -16,7 +16,22 @@ function requiredSecret(name) {
   return value;
 }
 
+const storageDriver = process.env.STORAGE_DRIVER ?? 'local';
+if (!['local', 's3'].includes(storageDriver)) {
+  throw new Error('STORAGE_DRIVER must be "local" or "s3".');
+}
+
 export const config = {
+  storage: {
+    driver: storageDriver,
+    ...(storageDriver === 's3' && {
+      endpoint: required('S3_ENDPOINT'),
+      bucket: required('S3_BUCKET'),
+      accessKeyId: required('S3_ACCESS_KEY_ID'),
+      secretAccessKey: required('S3_SECRET_ACCESS_KEY'),
+      region: process.env.S3_REGION ?? 'auto',
+    }),
+  },
   port: Number(process.env.PORT ?? 3001),
   databaseUrl: required('DATABASE_URL'),
   databaseSsl: process.env.DATABASE_SSL === 'true',

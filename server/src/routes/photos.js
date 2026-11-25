@@ -4,7 +4,7 @@ import { pool, withTransaction } from '../db/pool.js';
 import { ensureHolder, findVisibleActivity, getActivityDetail, invalidStatus, lockActivity, recordEvent } from '../domain/activities.js';
 import { TECHNICIAN_EDITABLE_STATUSES } from '../domain/rules.js';
 import { HttpError } from '../lib/errors.js';
-import { absolutePhotoPath, deletePhotoFile, isValidPhotoSignature } from '../lib/photos.js';
+import { deletePhotoFile, isValidPhotoSignature, sendPhotoFile } from '../lib/photos.js';
 import { notifyActivityChanged } from '../realtime/activityEvents.js';
 import { idSchema, validate } from '../lib/validation.js';
 
@@ -28,7 +28,7 @@ photosRouter.get('/:id/file', async (req, res) => {
     'Cross-Origin-Resource-Policy': 'cross-origin',
   });
   res.type(photo.mime_type);
-  res.sendFile(absolutePhotoPath(photo.storage_key));
+  await sendPhotoFile(res, photo.storage_key);
 });
 
 photosRouter.delete('/:id', authenticate, requireRole('technician'), async (req, res) => {

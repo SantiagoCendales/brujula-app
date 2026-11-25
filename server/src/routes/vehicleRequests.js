@@ -8,7 +8,7 @@ import { recordEvent } from '../domain/activities.js';
 import { createRejectionNotifications } from '../domain/notifications.js';
 import { ACTIVITY_TYPES } from '../domain/rules.js';
 import { HttpError } from '../lib/errors.js';
-import { absolutePhotoPath, deletePhotoFile, detectImageType, savePhotoFile } from '../lib/photos.js';
+import { deletePhotoFile, detectImageType, savePhotoFile, sendPhotoFile } from '../lib/photos.js';
 import { idSchema, validate } from '../lib/validation.js';
 import { notifyActivityChanged, notifyVehicleRequestChanged } from '../realtime/activityEvents.js';
 
@@ -108,7 +108,7 @@ vehicleRequestsRouter.get('/:id/ownership-photo', async (req, res) => {
   if (!photo?.ownership_photo_key) throw new HttpError(404, 'not_found', 'Foto no encontrada');
   res.set('Cache-Control', 'private, no-store');
   res.type(photo.ownership_photo_mime_type);
-  res.sendFile(absolutePhotoPath(photo.ownership_photo_key));
+  await sendPhotoFile(res, photo.ownership_photo_key);
 });
 
 const optionalText = (max) => z.string().trim().max(max).default('').transform((value) => value || null);

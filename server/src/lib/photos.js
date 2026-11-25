@@ -1,7 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { mkdir, unlink, writeFile } from 'node:fs/promises';
-import path from 'node:path';
 import { config } from '../config.js';
+import { storage } from './storage.js';
 
 const URL_LIFETIME_SECONDS = 60 * 60;
 
@@ -40,25 +39,6 @@ export function detectImageType(buffer) {
   return null;
 }
 
-export function absolutePhotoPath(storageKey) {
-  const absolutePath = path.resolve(config.uploadsDir, storageKey);
-  if (!absolutePath.startsWith(config.uploadsDir + path.sep)) {
-    throw new Error(`Storage key escapes the uploads directory: ${storageKey}`);
-  }
-  return absolutePath;
-}
-
-export async function savePhotoFile(storageKey, buffer) {
-  const absolutePath = absolutePhotoPath(storageKey);
-  await mkdir(path.dirname(absolutePath), { recursive: true });
-  await writeFile(absolutePath, buffer, { flag: 'wx' });
-}
-
-// A file that is already gone counts as deleted.
-export async function deletePhotoFile(storageKey) {
-  try {
-    await unlink(absolutePhotoPath(storageKey));
-  } catch (error) {
-    if (error.code !== 'ENOENT') throw error;
-  }
-}
+export const savePhotoFile = (storageKey, buffer) => storage.save(storageKey, buffer);
+export const deletePhotoFile = (storageKey) => storage.remove(storageKey);
+export const sendPhotoFile = (res, storageKey) => storage.send(res, storageKey);
