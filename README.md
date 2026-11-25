@@ -51,6 +51,29 @@ npm run dev:web                 # http://localhost:5173
 
 Si la pantalla de inicio muestra "✅ API y base de datos conectadas", está todo bien.
 
+## Base de datos Neon
+
+La API usa `pg` y recibe la conexión en `DATABASE_URL`; no necesita otro driver.
+`neon deploy` guarda la conexión de la rama enlazada en `.env.local` en la raíz.
+Ese archivo contiene secretos y no se sube al repositorio.
+
+Para comprobar la API localmente contra esa rama, desde la raíz y con
+`JWT_SECRET` configurado en `server/.env`:
+
+```bash
+node --env-file-if-exists=server/.env --env-file=.env.local server/src/index.js
+```
+
+Abrir `http://localhost:3001/api/health` para comprobar la conexión. Esta API
+usa la base de la rama enlazada: si es producción, cualquier cambio afecta los
+datos reales. No ejecutar el seed de demostración contra ella.
+
+En el hosting de la API, configurar `DATABASE_URL` como variable secreta,
+usar `sslmode=verify-full` en la cadena de conexión y `DATABASE_SSL=true`.
+No copiar credenciales al repositorio ni al frontend. El archivo `.env.local`
+no se carga automáticamente en el hosting: las variables deben configurarse
+allí por separado.
+
 ## App Android (Capacitor)
 
 El proyecto Android está en `web/android/` y se genera a partir del mismo código de `web/src`. Hace falta Android Studio con el SDK instalado.

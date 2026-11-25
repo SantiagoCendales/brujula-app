@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: brujula-api
+    runtime: node
+    plan: free
+    # Only the server workspace is needed; the web app is built and hosted separately.
+    buildCommand: npm ci --workspace server --include-workspace-root
+    startCommand: npm start -w server
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_SSL
+        value: "true"
+      - key: STORAGE_DRIVER
+        value: s3
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
