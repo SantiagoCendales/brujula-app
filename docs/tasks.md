@@ -68,7 +68,7 @@ Los componentes van en `web/src/components/`, se arman con los componentes de `c
 
 ## 🔄 En curso
 
-- **Despliegue:** Neon Postgres conectado y migraciones aplicadas; falta configurar el hosting, el almacenamiento privado de fotos, el primer administrador y probar el flujo completo.
+- **Despliegue:** Neon Postgres conectado y migraciones aplicadas; Supabase Storage probado con un archivo ficticio. Falta configurar el hosting y el primer administrador y probar el flujo completo.
 - **Solicitud de placa nueva y sus datos:** el cliente, al crear una solicitud, puede elegir «placa nueva» e informar las características del vehículo, el lugar, la fecha y la hora; Admin y Coordinador la aprueban (se crea el vehículo y la actividad) o la rechazan con una nota. Pendiente de pruebas del usuario.
 - **Vehículos agrupados:** Admin y Coordinador ven una lista de clientes; las placas se muestran al tocar cada uno. Pendiente de pruebas del usuario.
 - **Preferencias de notificaciones:** cada usuario elige qué avisos emergentes y vibraciones recibe desde Configuración; la campanita conserva el historial y los avisos críticos del técnico son obligatorios. Pendiente de pruebas del usuario.

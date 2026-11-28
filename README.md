@@ -74,6 +74,19 @@ No copiar credenciales al repositorio ni al frontend. El archivo `.env.local`
 no se carga automáticamente en el hosting: las variables deben configurarse
 allí por separado.
 
+## Fotos en Supabase Storage
+
+Crear un bucket privado y configurar la API con `STORAGE_DRIVER=s3`. En
+Storage > S3 de Supabase se encuentran el endpoint, la región y las claves S3:
+configurarlos como `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID` y
+`S3_SECRET_ACCESS_KEY`; usar el nombre del bucket en `S3_BUCKET` y
+`S3_FORCE_PATH_STYLE=true`. Las claves S3 dan acceso a todos los buckets y
+deben permanecer solo en el servidor, nunca en el frontend ni en el repositorio.
+En desarrollo, sin estas variables, las fotos siguen en `uploads/`.
+
+Cambiar de almacenamiento no copia las fotos existentes: antes de reutilizar
+una base con fotos anteriores, hay que migrar los archivos conservando sus claves.
+
 ## App Android (Capacitor)
 
 El proyecto Android está en `web/android/` y se genera a partir del mismo código de `web/src`. Hace falta Android Studio con el SDK instalado.

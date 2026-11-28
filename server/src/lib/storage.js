@@ -74,6 +74,7 @@ function createConfiguredStorage() {
   const client = new S3Client({
     region: config.storage.region,
     endpoint: config.storage.endpoint,
+    forcePathStyle: config.storage.forcePathStyle,
     credentials: { accessKeyId: config.storage.accessKeyId, secretAccessKey: config.storage.secretAccessKey },
   });
   return createObjectStorage(client, config.storage.bucket);
